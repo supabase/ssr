@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@supabase/ssr",
   "version": "0.0.0",
   "description": "Use the Supabase JavaScript library in popular server-side rendering (SSR) frameworks.",
@@ -36,7 +35,6 @@
     "@eslint/js": "^9.3.0",
     "@supabase/supabase-js": "^2.43.4",
     "@types/cookie": "^0.6.0",
-    "@types/ramda": "^0.30.0",
     "@vitest/coverage-v8": "^1.6.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
@@ -51,7 +49,6 @@
     "@rollup/rollup-linux-x64-gnu": "^4.9.5"
   },
   "dependencies": {
-    "cookie": "^0.6.0",
-    "ramda": "^0.30.0"
+    "cookie": "^0.6.0"
   }
 }

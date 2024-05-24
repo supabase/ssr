@@ -4,3 +4,4 @@
 *.spec.js
 *.spec.js.map
 *.spec.ts
+__snapshots__
