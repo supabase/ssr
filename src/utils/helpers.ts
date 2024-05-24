@@ -1,5 +1,7 @@
-export { parse, serialize } from 'cookie';
+export { parse, serialize } from "cookie";
 
 export function isBrowser() {
-	return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+  return (
+    typeof window !== "undefined" && typeof window.document !== "undefined"
+  );
 }
