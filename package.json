@@ -31,8 +31,12 @@
   },
   "homepage": "https://github.com/supabase/ssr#readme",
   "devDependencies": {
+    "@supabase/supabase-js": "^2.43.4",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.43.4"
   }
 }
