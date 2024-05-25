@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  lint:
+    name: Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+
+      - run: npm ci
+
+      - name: Prettier
+        run: |
+          npx prettier --check .
+
+      - name: eslint
+        run: |
+          npx eslint
+
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+
+      - run: npm ci
+
+      - name: Build
+        run: |
+          npm run build
+
+      - name: Test
+        run: |
+          npm run test
