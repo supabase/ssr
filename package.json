@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@supabase/ssr",
-  "version": "0.3.0",
+  "version": "0.0.0",
   "description": "Use the Supabase JavaScript library in popular server-side rendering (SSR) frameworks.",
   "main": "dist/main/index.js",
   "module": "dist/module/index.js",
