@@ -12,6 +12,8 @@ import type {
   GenericSchema,
   SupabaseClientOptions,
 } from "@supabase/supabase-js/dist/module/lib/types";
+
+import { VERSION } from "./version";
 import type { CookieOptionsWithName, CookieMethods } from "./types";
 
 export function createServerClient<
@@ -69,7 +71,7 @@ export function createServerClient<
   const cookieClientOptions = {
     global: {
       headers: {
-        "X-Client-Info": `${PACKAGE_NAME}/${PACKAGE_VERSION}`,
+        "X-Client-Info": `supabase-ssr/${VERSION}`,
       },
     },
     auth: {

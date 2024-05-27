@@ -1,12 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { mergeDeepRight } from "ramda";
-import {
-  DEFAULT_COOKIE_OPTIONS,
-  combineChunks,
-  createChunks,
-  deleteChunks,
-  isBrowser,
-} from "./utils";
 import { parse, serialize } from "cookie";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -14,6 +7,15 @@ import type {
   GenericSchema,
   SupabaseClientOptions,
 } from "@supabase/supabase-js/dist/module/lib/types";
+
+import { VERSION } from "./version";
+import {
+  DEFAULT_COOKIE_OPTIONS,
+  combineChunks,
+  createChunks,
+  deleteChunks,
+  isBrowser,
+} from "./utils";
 import type { CookieMethods, CookieOptionsWithName } from "./types";
 
 let cachedBrowserClient: SupabaseClient<any, string> | undefined;
@@ -98,7 +100,7 @@ export function createBrowserClient<
   const cookieClientOptions = {
     global: {
       headers: {
-        "X-Client-Info": `${PACKAGE_NAME}/${PACKAGE_VERSION}`,
+        "X-Client-Info": `supabase-ssr/${VERSION}`,
       },
     },
     auth: {
