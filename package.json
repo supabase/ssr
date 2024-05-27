@@ -3,9 +3,10 @@
   "name": "@supabase/ssr",
   "version": "0.3.0",
   "description": "Use the Supabase JavaScript library in popular server-side rendering (SSR) frameworks.",
-  "main": "index.js",
+  "main": "dist/main/index.js",
+  "module": "dist/module/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.main.json",
     "test": "vitest --coverage"
   },
   "repository": {
