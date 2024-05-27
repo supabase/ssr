@@ -1,0 +1,6 @@
+/coverage
+/.github
+/.*
+*.spec.js
+*.spec.js.map
+*.spec.ts
