@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.4.0](https://github.com/supabase/ssr/compare/v0.3.0...v0.4.0) (2024-06-12)
+
+
+### Features
+
+* full rewrite using `getAll` and `setAll` cookie methods ([#1](https://github.com/supabase/ssr/issues/1)) ([b6ae192](https://github.com/supabase/ssr/commit/b6ae192aeb37ac6948637955cf1d3d6179b90065))
+
 ## 0.3.0
 
 ### Minor Changes
