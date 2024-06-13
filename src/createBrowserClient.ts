@@ -1,4 +1,3 @@
-import { parse, serialize } from "cookie";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type {
   GenericSchema,
@@ -6,22 +5,12 @@ import type {
 } from "@supabase/supabase-js/dist/module/lib/types";
 
 import { VERSION } from "./version";
-import {
-  DEFAULT_COOKIE_OPTIONS,
-  combineChunks,
-  createChunks,
-  deleteChunks,
-  isBrowser,
-  isChunkLike,
-} from "./utils";
+import { isBrowser } from "./utils";
 
 import type {
   CookieMethodsBrowser,
   CookieMethodsBrowserDeprecated,
-  CookieOptions,
   CookieOptionsWithName,
-  GetAllCookies,
-  SetAllCookies,
 } from "./types";
 
 import { createStorageFromOptions } from "./cookies";
@@ -49,7 +38,7 @@ export function createBrowserClient<
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
-  },
+  }
 ): SupabaseClient<Database, SchemaName, Schema>;
 
 /**
@@ -85,7 +74,7 @@ export function createBrowserClient<
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
-  },
+  }
 ): SupabaseClient<Database, SchemaName, Schema>;
 
 export function createBrowserClient<
@@ -104,7 +93,7 @@ export function createBrowserClient<
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
-  },
+  }
 ): SupabaseClient<Database, SchemaName, Schema> {
   // singleton client is created only if isSingleton is set to true, or if isSingleton is not defined and we detect a browser
   const shouldUseSingleton =
@@ -117,7 +106,7 @@ export function createBrowserClient<
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
+      `@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
     );
   }
 
@@ -126,7 +115,7 @@ export function createBrowserClient<
       ...options,
       cookieEncoding: options?.cookieEncoding ?? "base64url",
     },
-    false,
+    false
   );
 
   const client = createClient<Database, SchemaName, Schema>(
@@ -152,7 +141,7 @@ export function createBrowserClient<
         persistSession: true,
         storage,
       },
-    },
+    }
   );
 
   if (shouldUseSingleton) {
