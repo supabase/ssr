@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`helpers > parseCookieHeader > should parse a Cookie header 1`] = `[]`;
+
+exports[`helpers > parseCookieHeader > should parse a Cookie header 2`] = `
+[
+  {
+    "name": "a",
+    "value": "b",
+  },
+  {
+    "name": "c",
+    "value": " hello ",
+  },
+  {
+    "name": "e",
+    "value": "f",
+  },
+]
+`;
+
+exports[`helpers > serializeCookieHeader > should serialize a cookie to a Set-Cookie header 1`] = `"a=; Max-Age=123; Path=/; HttpOnly; Secure"`;
+
+exports[`helpers > serializeCookieHeader > should serialize a cookie to a Set-Cookie header 2`] = `"b=%20weird%20value; Max-Age=345"`;
