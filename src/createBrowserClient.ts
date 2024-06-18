@@ -29,30 +29,6 @@ import { createStorageFromOptions } from "./cookies";
 let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
 
 /**
- * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
- * the `get`, `set` and `remove`. These will not be supported in the next major
- * version.
- */
-export function createBrowserClient<
-  Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
->(
-  supabaseUrl: string,
-  supabaseKey: string,
-  options?: SupabaseClientOptions<SchemaName> & {
-    cookies: CookieMethodsBrowserDeprecated;
-    cookieOptions?: CookieOptionsWithName;
-    cookieEncoding?: "raw" | "base64url";
-    isSingleton?: boolean;
-  },
-): SupabaseClient<Database, SchemaName, Schema>;
-
-/**
  * Creates a Supabase Client for use in a browser environment.
  *
  * In most cases you should not configure the `options.cookies` object, as this
@@ -82,6 +58,30 @@ export function createBrowserClient<
   supabaseKey: string,
   options?: SupabaseClientOptions<SchemaName> & {
     cookies?: CookieMethodsBrowser;
+    cookieOptions?: CookieOptionsWithName;
+    cookieEncoding?: "raw" | "base64url";
+    isSingleton?: boolean;
+  },
+): SupabaseClient<Database, SchemaName, Schema>;
+
+/**
+ * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
+ * the `get`, `set` and `remove`. These will not be supported in the next major
+ * version.
+ */
+export function createBrowserClient<
+  Database = any,
+  SchemaName extends string & keyof Database = "public" extends keyof Database
+    ? "public"
+    : string & keyof Database,
+  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
+    ? Database[SchemaName]
+    : any,
+>(
+  supabaseUrl: string,
+  supabaseKey: string,
+  options?: SupabaseClientOptions<SchemaName> & {
+    cookies: CookieMethodsBrowserDeprecated;
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
