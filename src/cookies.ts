@@ -155,9 +155,17 @@ export function createStorageFromOptions(
       "@supabase/ssr: createServerClient must be initialized with cookie options that specify getAll and setAll functions (deprecated, not recommended: alternatively use get, set and remove)",
     );
   } else {
-    throw new Error(
-      "@supabase/ssr: createBrowserClient in non-browser runtimes must be initialized with cookie options that specify getAll and setAll functions (deprecated: alternatively use get, set and remove)",
-    );
+    // getting cookies when there's no window but we're in browser mode can be OK, because the developer probably is not using auth functions
+    getAll = () => {
+      return [];
+    };
+
+    // this is NOT OK because the developer is using auth functions that require setting some state, so that must error out
+    setAll = () => {
+      throw new Error(
+        "@supabase/ssr: createBrowserClient in non-browser runtimes (including Next.js pre-rendering mode) was not initialized cookie options that specify getAll and setAll functions (deprecated: alternatively use get, set and remove), but they were needed",
+      );
+    };
   }
 
   if (!isServerClient) {
