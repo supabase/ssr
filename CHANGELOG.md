@@ -2,17 +2,15 @@
 
 ## [0.4.0](https://github.com/supabase/ssr/compare/v0.3.0...v0.4.0) (2024-06-24)
 
-
 ### Features
 
-* full rewrite using `getAll` and `setAll` cookie methods ([#1](https://github.com/supabase/ssr/issues/1)) ([b6ae192](https://github.com/supabase/ssr/commit/b6ae192aeb37ac6948637955cf1d3d6179b90065))
-
+- full rewrite using `getAll` and `setAll` cookie methods ([#1](https://github.com/supabase/ssr/issues/1)) ([b6ae192](https://github.com/supabase/ssr/commit/b6ae192aeb37ac6948637955cf1d3d6179b90065))
 
 ### Bug Fixes
 
-* allow use of `createBrowserClient` without `window` present ([#20](https://github.com/supabase/ssr/issues/20)) ([27d868d](https://github.com/supabase/ssr/commit/27d868d530925805fe2f3577ae716ece40dd3ab6))
-* deprecate `parse`, `serialize` exports for more useful functions ([#14](https://github.com/supabase/ssr/issues/14)) ([0b5f881](https://github.com/supabase/ssr/commit/0b5f881e90b7836f2b98b733aac1cc9f916286cb))
-* fix `createBrowserClient` deprecation tsdoc ([#17](https://github.com/supabase/ssr/issues/17)) ([1df70ad](https://github.com/supabase/ssr/commit/1df70ad51e65caab46cbc00342dbb42f6d498c32))
+- allow use of `createBrowserClient` without `window` present ([#20](https://github.com/supabase/ssr/issues/20)) ([27d868d](https://github.com/supabase/ssr/commit/27d868d530925805fe2f3577ae716ece40dd3ab6))
+- deprecate `parse`, `serialize` exports for more useful functions ([#14](https://github.com/supabase/ssr/issues/14)) ([0b5f881](https://github.com/supabase/ssr/commit/0b5f881e90b7836f2b98b733aac1cc9f916286cb))
+- fix `createBrowserClient` deprecation tsdoc ([#17](https://github.com/supabase/ssr/issues/17)) ([1df70ad](https://github.com/supabase/ssr/commit/1df70ad51e65caab46cbc00342dbb42f6d498c32))
 
 ## 0.3.0
 
