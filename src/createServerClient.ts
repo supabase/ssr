@@ -194,7 +194,8 @@ export function createServerClient<
         event === "TOKEN_REFRESHED" ||
         event === "USER_UPDATED" ||
         event === "PASSWORD_RECOVERY" ||
-        event === "SIGNED_OUT")
+        event === "SIGNED_OUT" ||
+        event === "MFA_CHALLENGE_VERIFIED")
     ) {
       await applyServerStorage(
         { getAll, setAll, setItems, removedItems },
