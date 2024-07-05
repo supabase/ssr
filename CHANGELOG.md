@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.4.1](https://github.com/supabase/ssr/compare/v0.4.0...v0.4.1) (2024-07-05)
+
+
+### Bug Fixes
+
+* add small fixes to v0.4.0 ([#34](https://github.com/supabase/ssr/issues/34)) ([3640ef9](https://github.com/supabase/ssr/commit/3640ef9f68917ace598534939ebd916963a48bab))
+
 ## [0.4.0](https://github.com/supabase/ssr/compare/v0.3.0...v0.4.0) (2024-06-24)
 
 ### Features
