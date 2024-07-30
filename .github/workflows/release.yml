@@ -90,6 +90,7 @@ jobs:
 
           echo '//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}' > ~/.npmrc
 
+
           DIST_TAG=patched
           if [ "$RELEASE_CANDIDATE" == "true" ]
           then
@@ -98,6 +99,20 @@ jobs:
           then
             # This is the main branch and it's not a prerelease, so the dist-tag should be `latest`.
             DIST_TAG=latest
+          elif [[ "$GITHUB_REF" == "refs/heads/release/"* ]]
+          then
+            # This is a release branch. We need to determine if this release
+            # branch is the _latest_ release branch. If yes, use
+            # DIST_TAG=latest. Make sure checkout action runs with
+            # fetch-depth: 0!
+
+            LATEST_BRANCH=$(git branch -al origin/release/* --sort=-v:refname | head -n 1 | tr -d "* \t")
+            REF_AS_REMOTE_BRANCH=$(echo "$GITHUB_REF" | sed "s|refs/heads/|remotes/origin/|g")
+
+            if [ "$LATEST_BRANCH" == "$REF_AS_REMOTE_BRANCH" ]
+            then
+              DIST_TAG=latest
+            fi
           fi
 
           echo "Publishing @supabase/ssr now..."
