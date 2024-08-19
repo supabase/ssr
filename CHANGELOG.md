@@ -1,5 +1,21 @@
 # @supabase/ssr
 
+## [0.5.0](https://github.com/supabase/ssr/compare/v0.4.0...v0.5.0) (2024-08-19)
+
+
+### Features
+
+* update CI so it runs on release as well ([#33](https://github.com/supabase/ssr/issues/33)) ([4517996](https://github.com/supabase/ssr/commit/4517996a4eea6d41b8ad07c769c78a10b9ee63aa))
+
+
+### Bug Fixes
+
+* re-apply update CI so it runs on release as well ([#49](https://github.com/supabase/ssr/issues/49)) ([51d5a43](https://github.com/supabase/ssr/commit/51d5a43e2300f46560dc22c67c61f95a6b8d1b3b))
+* revert "update CI so it runs on release as well" ([#44](https://github.com/supabase/ssr/issues/44)) ([9d0e859](https://github.com/supabase/ssr/commit/9d0e859cb18b7669f452bc955c6d1c4897873f93))
+* set cookies for password recovery event ([#32](https://github.com/supabase/ssr/issues/32)) ([7dc1837](https://github.com/supabase/ssr/commit/7dc1837dc4aba870b32792586969316df980ce07))
+* set cookies when mfa challenge is verified ([#27](https://github.com/supabase/ssr/issues/27)) ([c217f53](https://github.com/supabase/ssr/commit/c217f5392b17a80a8e30709445c239e860a107d6))
+* update conventional commits ci to use main instead of master ([#31](https://github.com/supabase/ssr/issues/31)) ([bebce89](https://github.com/supabase/ssr/commit/bebce8999d9b2ae554daa2aaffdaf37d972b7fe4))
+
 ## [0.4.0](https://github.com/supabase/ssr/compare/v0.3.0...v0.4.0) (2024-06-24)
 
 ### Features
