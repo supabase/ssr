@@ -4,5 +4,7 @@ export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
   path: "/",
   sameSite: "lax",
   httpOnly: false,
-  maxAge: 60 * 60 * 24 * 365 * 1000,
+  // https://developer.chrome.com/blog/cookie-max-age-expires
+  // https://httpwg.org/http-extensions/draft-ietf-httpbis-rfc6265bis.html#name-cookie-lifetime-limits
+  maxAge: 400 * 24 * 60 * 60,
 };

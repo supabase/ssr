@@ -34,7 +34,7 @@ exports[`createServerClient > use cases > should refresh session correctly as ty
     "name": "custom-storage-key.0",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -44,7 +44,7 @@ exports[`createServerClient > use cases > should refresh session correctly as ty
     "name": "custom-storage-key.1",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -75,7 +75,7 @@ exports[`createServerClient > use cases > should refresh session correctly as ty
     "name": "sb-project-ref-auth-token.0",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -85,7 +85,7 @@ exports[`createServerClient > use cases > should refresh session correctly as ty
     "name": "sb-project-ref-auth-token.1",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -100,7 +100,7 @@ exports[`createServerClient > use cases > should set PKCE code verifier correctl
     "name": "custom-storage-key-code-verifier",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -115,7 +115,7 @@ exports[`createServerClient > use cases > should set PKCE code verifier correctl
     "name": "sb-project-ref-auth-token-code-verifier",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -140,7 +140,7 @@ exports[`createServerClient > use cases > should set exchange PKCE code for sess
     "name": "custom-storage-key.0",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -150,7 +150,7 @@ exports[`createServerClient > use cases > should set exchange PKCE code for sess
     "name": "custom-storage-key.1",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -195,7 +195,7 @@ exports[`createServerClient > use cases > should set exchange PKCE code for sess
     "name": "sb-project-ref-auth-token.0",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
@@ -205,7 +205,7 @@ exports[`createServerClient > use cases > should set exchange PKCE code for sess
     "name": "sb-project-ref-auth-token.1",
     "options": {
       "httpOnly": false,
-      "maxAge": 31536000000,
+      "maxAge": 34560000,
       "path": "/",
       "sameSite": "lax",
     },
