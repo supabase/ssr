@@ -1,5 +1,13 @@
 # @supabase/ssr
 
+## [0.5.1](https://github.com/supabase/ssr/compare/v0.5.0...v0.5.1) (2024-08-28)
+
+
+### Bug Fixes
+
+* remove optional dependencies ([#41](https://github.com/supabase/ssr/issues/41)) ([a48fe6f](https://github.com/supabase/ssr/commit/a48fe6fd9754786d0ec673ff1418b833a8cfbc70))
+* set `max-age` default cookie option to 400 days ([#54](https://github.com/supabase/ssr/issues/54)) ([f4ed2e0](https://github.com/supabase/ssr/commit/f4ed2e0a29445781857c4526f84673693ca9679c))
+
 ## [0.5.0](https://github.com/supabase/ssr/compare/v0.4.0...v0.5.0) (2024-08-19)
 
 
