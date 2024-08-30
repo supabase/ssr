@@ -342,7 +342,10 @@ export function createStorageFromOptions(
 
         let decoded = chunkedCookie;
 
-        if (chunkedCookie.startsWith(BASE64_PREFIX)) {
+        if (
+          typeof chunkedCookie === "string" &&
+          chunkedCookie.startsWith(BASE64_PREFIX)
+        ) {
           decoded = stringFromBase64URL(
             chunkedCookie.substring(BASE64_PREFIX.length),
           );
