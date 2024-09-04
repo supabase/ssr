@@ -47,11 +47,3 @@ export type CookieMethodsServer = {
   getAll: GetAllCookies;
   setAll?: SetAllCookies;
 };
-
-export type AuthEvent =
-  | "SIGNED_IN"
-  | "TOKEN_REFRESHED"
-  | "USER_UPDATED"
-  | "PASSWORD_RECOVERY"
-  | "SIGNED_OUT"
-  | "MFA_CHALLENGE_VERIFIED";

@@ -1,4 +1,8 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import {
+  AuthChangeEvent,
+  createClient,
+  SupabaseClient,
+} from "@supabase/supabase-js";
 import type {
   GenericSchema,
   SupabaseClientOptions,
@@ -10,7 +14,6 @@ import type {
   CookieOptionsWithName,
   CookieMethodsServer,
   CookieMethodsServerDeprecated,
-  AuthEvent,
 } from "./types";
 
 /**
@@ -173,7 +176,7 @@ export function createServerClient<
     },
   );
 
-  client.auth.onAuthStateChange(async (event: AuthEvent) => {
+  client.auth.onAuthStateChange(async (event: AuthChangeEvent) => {
     // The SIGNED_IN event is fired very often, but we don't need to
     // apply the storage each time it fires, only if there are changes
     // that need to be set -- which is if setItems / removeItems have
