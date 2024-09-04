@@ -5,14 +5,7 @@ import type {
 } from "@supabase/supabase-js/dist/module/lib/types";
 
 import { VERSION } from "./version";
-import {
-  DEFAULT_COOKIE_OPTIONS,
-  combineChunks,
-  createChunks,
-  deleteChunks,
-  isBrowser,
-  isChunkLike,
-} from "./utils";
+
 import { createStorageFromOptions, applyServerStorage } from "./cookies";
 import type {
   CookieOptionsWithName,
@@ -28,11 +21,11 @@ import type {
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = "public" extends keyof Database
-  ? "public"
-  : string & keyof Database,
+    ? "public"
+    : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-  ? Database[SchemaName]
-  : any,
+    ? Database[SchemaName]
+    : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -107,11 +100,11 @@ export function createServerClient<
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = "public" extends keyof Database
-  ? "public"
-  : string & keyof Database,
+    ? "public"
+    : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-  ? Database[SchemaName]
-  : any,
+    ? Database[SchemaName]
+    : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -125,11 +118,11 @@ export function createServerClient<
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = "public" extends keyof Database
-  ? "public"
-  : string & keyof Database,
+    ? "public"
+    : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-  ? Database[SchemaName]
-  : any,
+    ? Database[SchemaName]
+    : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
