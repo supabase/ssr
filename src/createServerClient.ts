@@ -28,11 +28,11 @@ import type {
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
+  ? "public"
+  : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
+  ? Database[SchemaName]
+  : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -107,11 +107,11 @@ export function createServerClient<
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
+  ? "public"
+  : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
+  ? Database[SchemaName]
+  : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -125,11 +125,11 @@ export function createServerClient<
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
+  ? "public"
+  : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
+  ? Database[SchemaName]
+  : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -170,11 +170,11 @@ export function createServerClient<
         ...(options?.cookieOptions?.name
           ? { storageKey: options.cookieOptions.name }
           : null),
-        ...options?.auth,
         flowType: "pkce",
         autoRefreshToken: false,
         detectSessionInUrl: false,
         persistSession: true,
+        ...options?.auth,
         storage,
       },
     },
