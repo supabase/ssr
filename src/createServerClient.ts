@@ -149,6 +149,7 @@ export function createServerClient<
       },
       true,
     );
+  const storageKey = options?.auth?.storageKey || options?.cookieOptions?.name;
 
   const client = createClient<Database, SchemaName, Schema>(
     supabaseUrl,
@@ -163,9 +164,7 @@ export function createServerClient<
         },
       },
       auth: {
-        ...(options?.cookieOptions?.name
-          ? { storageKey: options.cookieOptions.name }
-          : null),
+        ...(storageKey ? { storageKey } : null),
         ...options?.auth,
         flowType: "pkce",
         autoRefreshToken: false,
