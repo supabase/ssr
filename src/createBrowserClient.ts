@@ -1,4 +1,3 @@
-import { parse, serialize } from "cookie";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type {
   GenericSchema,
@@ -7,21 +6,13 @@ import type {
 
 import { VERSION } from "./version";
 import {
-  DEFAULT_COOKIE_OPTIONS,
-  combineChunks,
-  createChunks,
-  deleteChunks,
   isBrowser,
-  isChunkLike,
 } from "./utils";
 
 import type {
   CookieMethodsBrowser,
   CookieMethodsBrowserDeprecated,
-  CookieOptions,
   CookieOptionsWithName,
-  GetAllCookies,
-  SetAllCookies,
 } from "./types";
 
 import { createStorageFromOptions } from "./cookies";

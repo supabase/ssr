@@ -5,14 +5,6 @@ import type {
 } from "@supabase/supabase-js/dist/module/lib/types";
 
 import { VERSION } from "./version";
-import {
-  DEFAULT_COOKIE_OPTIONS,
-  combineChunks,
-  createChunks,
-  deleteChunks,
-  isBrowser,
-  isChunkLike,
-} from "./utils";
 import { createStorageFromOptions, applyServerStorage } from "./cookies";
 import type {
   CookieOptionsWithName,
