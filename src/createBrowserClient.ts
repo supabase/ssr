@@ -5,9 +5,7 @@ import type {
 } from "@supabase/supabase-js/dist/module/lib/types";
 
 import { VERSION } from "./version";
-import {
-  isBrowser,
-} from "./utils";
+import { isBrowser } from "./utils";
 
 import type {
   CookieMethodsBrowser,
