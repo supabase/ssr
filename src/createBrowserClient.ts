@@ -129,6 +129,8 @@ export function createBrowserClient<
     false,
   );
 
+  const storageKey = options?.auth?.storageKey || options?.cookieOptions?.name;
+
   const client = createClient<Database, SchemaName, Schema>(
     supabaseUrl,
     supabaseKey,
@@ -143,9 +145,7 @@ export function createBrowserClient<
       },
       auth: {
         ...options?.auth,
-        ...(options?.cookieOptions?.name
-          ? { storageKey: options.cookieOptions.name }
-          : null),
+        ...(storageKey ? { storageKey } : null),
         flowType: "pkce",
         autoRefreshToken: isBrowser(),
         detectSessionInUrl: isBrowser(),
