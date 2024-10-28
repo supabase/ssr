@@ -4,7 +4,6 @@ import {
   DEFAULT_COOKIE_OPTIONS,
   combineChunks,
   createChunks,
-  deleteChunks,
   isBrowser,
   isChunkLike,
   stringFromBase64URL,
@@ -140,7 +139,10 @@ export function createStorageFromOptions(
     const noHintGetAll = () => {
       const parsed = parse(document.cookie);
 
-      return Object.keys(parsed).map((name) => ({ name, value: parsed[name] }));
+      return Object.keys(parsed).map((name) => ({
+        name,
+        value: parsed[name] ?? "",
+      }));
     };
 
     getAll = () => noHintGetAll();

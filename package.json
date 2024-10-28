@@ -45,7 +45,6 @@
     "@supabase/supabase-js": "^2.43.4"
   },
   "dependencies": {
-    "cookie": "^0.7.0",
-    "@types/cookie": "^0.6.0"
+    "cookie": "^1.0.1"
   }
 }

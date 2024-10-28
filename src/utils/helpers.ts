@@ -1,4 +1,4 @@
-import type { CookieSerializeOptions } from "cookie";
+import type { SerializeOptions } from "cookie";
 import { parse as cookieParse, serialize as cookieSerialize } from "cookie";
 
 /**
@@ -22,7 +22,7 @@ export const serialize = cookieSerialize;
  */
 export function parseCookieHeader(
   header: string,
-): { name: string; value: string }[] {
+): { name: string; value?: string }[] {
   const parsed = cookieParse(header);
 
   return Object.keys(parsed ?? {}).map((name) => ({
@@ -41,7 +41,7 @@ export function parseCookieHeader(
 export function serializeCookieHeader(
   name: string,
   value: string,
-  options: CookieSerializeOptions,
+  options: SerializeOptions,
 ): string {
   return cookieSerialize(name, value, options);
 }
