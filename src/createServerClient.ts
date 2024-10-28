@@ -1,18 +1,14 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import {
+  AuthChangeEvent,
+  createClient,
+  SupabaseClient,
+} from "@supabase/supabase-js";
 import type {
   GenericSchema,
   SupabaseClientOptions,
 } from "@supabase/supabase-js/dist/module/lib/types";
 
 import { VERSION } from "./version";
-import {
-  DEFAULT_COOKIE_OPTIONS,
-  combineChunks,
-  createChunks,
-  deleteChunks,
-  isBrowser,
-  isChunkLike,
-} from "./utils";
 import { createStorageFromOptions, applyServerStorage } from "./cookies";
 import type {
   CookieOptionsWithName,
@@ -75,7 +71,7 @@ export function createServerClient<
  * **Use in pages, components or routes.**
  *
  * To use Supabase features server-side rendered in pages, components or routes
- * (a.k.a. actions / APIs) you must create a client with this funciton. Not all
+ * (a.k.a. actions / APIs) you must create a client with this function. Not all
  * frameworks allow the ability to set cookies or response headers when pages
  * or components are rendered. In those cases you _can omit `setAll` (or the
  * deprecated `set`, `remove`) cookie option methods_. **It is strongly
@@ -180,7 +176,7 @@ export function createServerClient<
     },
   );
 
-  client.auth.onAuthStateChange(async (event) => {
+  client.auth.onAuthStateChange(async (event: AuthChangeEvent) => {
     // The SIGNED_IN event is fired very often, but we don't need to
     // apply the storage each time it fires, only if there are changes
     // that need to be set -- which is if setItems / removeItems have
