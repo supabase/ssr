@@ -1,5 +1,14 @@
 # @supabase/ssr
 
+## [0.5.2](https://github.com/supabase/ssr/compare/v0.5.1...v0.5.2) (2024-11-05)
+
+
+### Bug Fixes
+
+* add @types/cookies to dependencies ([#63](https://github.com/supabase/ssr/issues/63)) ([47e5f16](https://github.com/supabase/ssr/commit/47e5f16b48e4ffbe889339410f50630aba734eac))
+* check chunkedCookie is string in server client ([#57](https://github.com/supabase/ssr/issues/57)) ([549fe62](https://github.com/supabase/ssr/commit/549fe62813fb9c7277f7eda9e46ee0420f8e0b5f))
+* update type, remove unused imports, define AuthEvent type ([#47](https://github.com/supabase/ssr/issues/47)) ([4f4a375](https://github.com/supabase/ssr/commit/4f4a375ab3df0274980718b7ad98cd4841a52cc4))
+
 ## [0.5.1](https://github.com/supabase/ssr/compare/v0.5.0...v0.5.1) (2024-08-28)
 
 
