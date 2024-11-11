@@ -1,6 +1,6 @@
-import type { CookieSerializeOptions } from "cookie";
+import type { SerializeOptions } from "cookie";
 
-export type CookieOptions = Partial<CookieSerializeOptions>;
+export type CookieOptions = Partial<SerializeOptions>;
 export type CookieOptionsWithName = { name?: string } & CookieOptions;
 
 export type GetCookie = (
