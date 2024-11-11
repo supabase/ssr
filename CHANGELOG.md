@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.6.0](https://github.com/supabase/ssr/compare/v0.5.2...v0.6.0) (2024-11-11)
+
+
+### Features
+
+* upgrade cookie dependency and cleanup imports ([#77](https://github.com/supabase/ssr/issues/77)) ([9524528](https://github.com/supabase/ssr/commit/95245282e67ce649b58504e3a98200797b7cd8f1))
+
 ## [0.5.2](https://github.com/supabase/ssr/compare/v0.5.1...v0.5.2) (2024-11-05)
 
 
