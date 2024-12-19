@@ -159,7 +159,7 @@ export function createServerClient<
         ...options?.global,
         headers: {
           ...options?.global?.headers,
-          "X-Client-Info": `supabase-ssr/${VERSION}`,
+          "X-Client-Info": `supabase-ssr/${VERSION} createServerClient`,
         },
       },
       auth: {
