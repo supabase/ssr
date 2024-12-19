@@ -127,7 +127,7 @@ export function createBrowserClient<
         ...options?.global,
         headers: {
           ...options?.global?.headers,
-          "X-Client-Info": `supabase-ssr/${VERSION}`,
+          "X-Client-Info": `supabase-ssr/${VERSION} createBrowserClient`,
         },
       },
       auth: {
