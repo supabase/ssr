@@ -10,6 +10,7 @@ jobs:
   release_please:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: write
       pull-requests: write
     steps:
@@ -117,7 +118,7 @@ jobs:
 
           echo "Publishing @supabase/ssr now..."
 
-          npm publish --tag "$DIST_TAG"
+          npm publish --provenance --tag "$DIST_TAG"
 
       - name: Create GitHub release and branches
         if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
