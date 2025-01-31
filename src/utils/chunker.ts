@@ -108,6 +108,18 @@ export async function combineChunks(
     values.push(chunk);
   }
 
+  // When a cookie is chunked, it is done in such a way that all but the last
+  // chunk will have the same length (usually MAX_CHUNK_SIZE). If we detect
+  // this to be not true, it points to a bug with the integration.
+  for (let i = 1; i < values.length - 1; i += 1) {
+    if (values[i - 1].length !== values[i].length) {
+      console.warn(
+        "@supabase/ssr: Possible issue reconstructing chunked cookies. Oddly sized cookie chunks detected. Please check your integration with Supabase for bugs. This can cause your users to loose the session.",
+      );
+      break;
+    }
+  }
+
   if (values.length > 0) {
     return values.join("");
   }
