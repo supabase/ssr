@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { combineChunks, createChunks } from "./chunker";
 
 const len = (str: string) => {
@@ -154,5 +154,43 @@ describe("chunker", () => {
         test,
       );
     });
+  });
+});
+
+describe("combineChunks", () => {
+  let warnings: any[][] = [];
+
+  let originalWarn: any;
+  beforeEach(() => {
+    warnings = [];
+
+    originalWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      warnings.push(structuredClone(args));
+    };
+  });
+
+  afterEach(() => {
+    console.warn = originalWarn;
+  });
+
+  it("should emit a warning if all but the last chunk is of unequal size", async () => {
+    const exampleChunks: { [name: string]: string } = {
+      "key.0": "abc",
+      "key.1": "de",
+      "key.2": "fgh",
+    };
+
+    await combineChunks("key", async (name) => {
+      return exampleChunks[name];
+    });
+
+    expect(warnings).toMatchInlineSnapshot(`
+      [
+        [
+          "@supabase/ssr: Possible issue reconstructing chunked cookies. Oddly sized cookie chunks detected. Please check your integration with Supabase for bugs. This can cause your users to loose the session.",
+        ],
+      ]
+    `);
   });
 });

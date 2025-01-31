@@ -22,6 +22,55 @@ import type {
 } from "./types";
 
 const BASE64_PREFIX = "base64-";
+const BASE64_LENGTH_PREFIX = "base64l-";
+const BASE64_LENGTH_PATTERN = /^base64l-([0-9a-z]+)-(.+)$/;
+
+export function decodeBase64Cookie(value: string) {
+  try {
+    return stringFromBase64URL(value);
+  } catch (e: any) {
+    // if an invalid UTF-8 sequence is encountered, it means that reconstructing the chunkedCookie failed and the cookies don't contain useful information
+    console.warn(
+      "@supabase/ssr: Detected stale cookie data that does not decode to a UTF-8 string. Please check your integration with Supabase for bugs. This can cause your users to loose session access.",
+    );
+    return null;
+  }
+}
+
+export function decodeCookie(chunkedCookie: string) {
+  let decoded = chunkedCookie;
+
+  if (chunkedCookie.startsWith(BASE64_PREFIX)) {
+    return decodeBase64Cookie(decoded.substring(BASE64_PREFIX.length));
+  } else if (chunkedCookie.startsWith(BASE64_LENGTH_PREFIX)) {
+    const match = chunkedCookie.match(BASE64_LENGTH_PATTERN);
+
+    if (!match) {
+      return null;
+    }
+
+    const expectedLength = parseInt(match[1], 36);
+
+    if (expectedLength === 0) {
+      return null;
+    }
+
+    if (match[2].length !== expectedLength) {
+      console.warn(
+        "@supabase/ssr: Detected stale cookie data. Please check your integration with Supabase for bugs. This can cause your users to loose the session.",
+      );
+    }
+
+    if (expectedLength <= match[2].length) {
+      return decodeBase64Cookie(match[2].substring(0, expectedLength));
+    } else {
+      // data is missing, cannot decode cookie
+      return null;
+    }
+  }
+
+  return decoded;
+}
 
 /**
  * Creates a storage client that handles cookies correctly for browser and
@@ -33,7 +82,7 @@ const BASE64_PREFIX = "base64-";
  */
 export function createStorageFromOptions(
   options: {
-    cookieEncoding: "raw" | "base64url";
+    cookieEncoding: "raw" | "base64url" | "base64url+length";
     cookies?:
       | CookieMethodsBrowser
       | CookieMethodsBrowserDeprecated
@@ -203,15 +252,7 @@ export function createStorageFromOptions(
             return null;
           }
 
-          let decoded = chunkedCookie;
-
-          if (chunkedCookie.startsWith(BASE64_PREFIX)) {
-            decoded = stringFromBase64URL(
-              chunkedCookie.substring(BASE64_PREFIX.length),
-            );
-          }
-
-          return decoded;
+          return decodeCookie(chunkedCookie);
         },
         setItem: async (key: string, value: string) => {
           const allCookies = await getAll([key]);
@@ -225,6 +266,13 @@ export function createStorageFromOptions(
 
           if (cookieEncoding === "base64url") {
             encoded = BASE64_PREFIX + stringToBase64URL(value);
+          } else if (cookieEncoding === "base64url+length") {
+            encoded = [
+              BASE64_LENGTH_PREFIX,
+              value.length.toString(36),
+              "-",
+              value,
+            ].join("");
           }
 
           const setCookies = createChunks(key, encoded);
@@ -342,18 +390,7 @@ export function createStorageFromOptions(
           return null;
         }
 
-        let decoded = chunkedCookie;
-
-        if (
-          typeof chunkedCookie === "string" &&
-          chunkedCookie.startsWith(BASE64_PREFIX)
-        ) {
-          decoded = stringFromBase64URL(
-            chunkedCookie.substring(BASE64_PREFIX.length),
-          );
-        }
-
-        return decoded;
+        return decodeCookie(chunkedCookie);
       },
       setItem: async (key: string, value: string) => {
         // We don't have an `onAuthStateChange` event that can let us know that
@@ -411,7 +448,7 @@ export async function applyServerStorage(
     removedItems: { [name: string]: boolean };
   },
   options: {
-    cookieEncoding: "raw" | "base64url";
+    cookieEncoding: "raw" | "base64url" | "base64url+length";
     cookieOptions?: CookieOptions | null;
   },
 ) {
@@ -439,6 +476,13 @@ export async function applyServerStorage(
 
     if (cookieEncoding === "base64url") {
       encoded = BASE64_PREFIX + stringToBase64URL(encoded);
+    } else if (cookieEncoding === "base64url+length") {
+      encoded = [
+        BASE64_LENGTH_PREFIX,
+        encoded.length.toString(36),
+        "-",
+        stringToBase64URL(encoded),
+      ].join("");
     }
 
     const chunks = createChunks(itemName, encoded);

@@ -3,7 +3,11 @@ import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { isBrowser, DEFAULT_COOKIE_OPTIONS, MAX_CHUNK_SIZE } from "./utils";
 import { CookieOptions } from "./types";
 
-import { createStorageFromOptions, applyServerStorage } from "./cookies";
+import {
+  createStorageFromOptions,
+  applyServerStorage,
+  decodeCookie,
+} from "./cookies";
 
 describe("createStorageFromOptions in browser without cookie methods", () => {
   beforeEach(() => {
@@ -1068,5 +1072,83 @@ describe("applyServerStorage", () => {
         options: { ...DEFAULT_COOKIE_OPTIONS },
       },
     ]);
+  });
+});
+
+describe("decodeCookie", () => {
+  let warnings: any[][] = [];
+  let originalWarn: any;
+
+  beforeEach(() => {
+    warnings = [];
+
+    originalWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      warnings.push(structuredClone(args));
+    };
+  });
+
+  afterEach(() => {
+    console.warn = originalWarn;
+  });
+
+  it("should decode base64url+length encoded value", () => {
+    const value = JSON.stringify({ a: "b" });
+    const valueB64 = Buffer.from(value).toString("base64url");
+
+    expect(
+      decodeCookie(`base64l-${valueB64.length.toString(36)}-${valueB64}`),
+    ).toEqual(value);
+    expect(
+      decodeCookie(
+        `base64l-${valueB64.length.toString(36)}-${valueB64}padding_that_is_ignored`,
+      ),
+    ).toEqual(value);
+    expect(
+      decodeCookie(
+        `base64l-${valueB64.length.toString(36)}-${valueB64.substring(0, valueB64.length - 1)}`,
+      ),
+    ).toBeNull();
+    expect(decodeCookie(`base64l-0-${valueB64}`)).toBeNull();
+    expect(decodeCookie(`base64l-${valueB64}`)).toBeNull();
+    expect(warnings).toMatchInlineSnapshot(`
+      [
+        [
+          "@supabase/ssr: Detected stale cookie data. Please check your integration with Supabase for bugs. This can cause your users to loose the session.",
+        ],
+        [
+          "@supabase/ssr: Detected stale cookie data. Please check your integration with Supabase for bugs. This can cause your users to loose the session.",
+        ],
+      ]
+    `);
+  });
+
+  it("should decode base64url encoded value", () => {
+    const value = JSON.stringify({ a: "b" });
+    const valueB64 = Buffer.from(value).toString("base64url");
+
+    expect(decodeCookie(`base64-${valueB64}`)).toEqual(value);
+    expect(warnings).toMatchInlineSnapshot(`[]`);
+  });
+
+  it("should not decode base64url encoded value with invalid UTF-8", () => {
+    const valueB64 = Buffer.from([0xff, 0xff, 0xff, 0xff]).toString(
+      "base64url",
+    );
+
+    expect(decodeCookie(`base64-${valueB64}`)).toBeNull();
+    expect(
+      decodeCookie(`base64l-${valueB64.length.toString(36)}-${valueB64}`),
+    ).toBeNull();
+    expect(warnings).toMatchInlineSnapshot(`
+      [
+        [
+          "@supabase/ssr: Detected stale cookie data that does not decode to a UTF-8 string. Please check your integration with Supabase for bugs. This can cause your users to loose session access.",
+        ],
+        [
+          "@supabase/ssr: Detected stale cookie data that does not decode to a UTF-8 string. Please check your integration with Supabase for bugs. This can cause your users to loose session access.",
+        ],
+      ]
+    `);
   });
 });

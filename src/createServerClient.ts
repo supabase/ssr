@@ -35,7 +35,7 @@ export function createServerClient<
   options: SupabaseClientOptions<SchemaName> & {
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
+    cookieEncoding?: "raw" | "base64url" | "base64url+length";
   },
 ): SupabaseClient<Database, SchemaName, Schema>;
 
@@ -114,7 +114,7 @@ export function createServerClient<
   options: SupabaseClientOptions<SchemaName> & {
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServer;
-    cookieEncoding?: "raw" | "base64url";
+    cookieEncoding?: "raw" | "base64url" | "base64url+length";
   },
 ): SupabaseClient<Database, SchemaName, Schema>;
 
@@ -132,7 +132,7 @@ export function createServerClient<
   options: SupabaseClientOptions<SchemaName> & {
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
+    cookieEncoding?: "raw" | "base64url" | "base64url+length";
   },
 ): SupabaseClient<Database, SchemaName, Schema> {
   if (!supabaseUrl || !supabaseKey) {
@@ -145,7 +145,7 @@ export function createServerClient<
     createStorageFromOptions(
       {
         ...options,
-        cookieEncoding: options?.cookieEncoding ?? "base64url",
+        cookieEncoding: options?.cookieEncoding ?? "base64url+length",
       },
       true,
     );
@@ -197,7 +197,7 @@ export function createServerClient<
         { getAll, setAll, setItems, removedItems },
         {
           cookieOptions: options?.cookieOptions ?? null,
-          cookieEncoding: options?.cookieEncoding ?? "base64url",
+          cookieEncoding: options?.cookieEncoding ?? "base64url+length",
         },
       );
     }
