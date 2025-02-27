@@ -1,5 +1,18 @@
 # @supabase/ssr
 
+## [0.6.0](https://github.com/supabase/ssr/compare/v0.5.2...v0.6.0) (2025-02-27)
+
+
+### Features
+
+* improve cookie chunk handling via base64url+length encoding ([#90](https://github.com/supabase/ssr/issues/90)) ([6deb687](https://github.com/supabase/ssr/commit/6deb6871caa09bcc27496371df6eb1a5e5882534))
+* upgrade cookie dependency and cleanup imports ([#77](https://github.com/supabase/ssr/issues/77)) ([9524528](https://github.com/supabase/ssr/commit/95245282e67ce649b58504e3a98200797b7cd8f1))
+
+
+### Bug Fixes
+
+* add `create*Client` string in `x-client-info` ([#85](https://github.com/supabase/ssr/issues/85)) ([f271acc](https://github.com/supabase/ssr/commit/f271accfea0454b965abc8b9b7e9bb5d55d72053))
+
 ## [0.5.2](https://github.com/supabase/ssr/compare/v0.5.1...v0.5.2) (2024-11-05)
 
 
