@@ -191,6 +191,7 @@ export function createServerClient<
         event === "USER_UPDATED" ||
         event === "PASSWORD_RECOVERY" ||
         event === "SIGNED_OUT" ||
+        event === "STORAGE_UPDATED" ||
         event === "MFA_CHALLENGE_VERIFIED")
     ) {
       await applyServerStorage(
