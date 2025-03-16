@@ -1,5 +1,13 @@
 # @supabase/ssr
 
+## [0.6.1](https://github.com/supabase/ssr/compare/v0.6.0...v0.6.1) (2025-03-16)
+
+
+### Bug Fixes
+
+* force release ([#98](https://github.com/supabase/ssr/issues/98)) ([66710e8](https://github.com/supabase/ssr/commit/66710e82aab5106f464e6754f2e75641a951c941))
+* **revert:** "feat: improve cookie chunk handling via base64url+length encoding ([#90](https://github.com/supabase/ssr/issues/90))" ([#100](https://github.com/supabase/ssr/issues/100)) ([2ea8e23](https://github.com/supabase/ssr/commit/2ea8e23525f7e36e88bca3f9ae1fbce892c683e4))
+
 ## [0.5.2](https://github.com/supabase/ssr/compare/v0.5.1...v0.5.2) (2024-11-05)
 
 
