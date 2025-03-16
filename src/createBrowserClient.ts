@@ -48,7 +48,7 @@ export function createBrowserClient<
   options?: SupabaseClientOptions<SchemaName> & {
     cookies?: CookieMethodsBrowser;
     cookieOptions?: CookieOptionsWithName;
-    cookieEncoding?: "raw" | "base64url" | "base64url+length";
+    cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
   },
 ): SupabaseClient<Database, SchemaName, Schema>;
@@ -72,7 +72,7 @@ export function createBrowserClient<
   options?: SupabaseClientOptions<SchemaName> & {
     cookies: CookieMethodsBrowserDeprecated;
     cookieOptions?: CookieOptionsWithName;
-    cookieEncoding?: "raw" | "base64url" | "base64url+length";
+    cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
   },
 ): SupabaseClient<Database, SchemaName, Schema>;
@@ -91,7 +91,7 @@ export function createBrowserClient<
   options?: SupabaseClientOptions<SchemaName> & {
     cookies?: CookieMethodsBrowser | CookieMethodsBrowserDeprecated;
     cookieOptions?: CookieOptionsWithName;
-    cookieEncoding?: "raw" | "base64url" | "base64url+length";
+    cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
   },
 ): SupabaseClient<Database, SchemaName, Schema> {
@@ -113,7 +113,7 @@ export function createBrowserClient<
   const { storage } = createStorageFromOptions(
     {
       ...options,
-      cookieEncoding: options?.cookieEncoding ?? "base64url+length",
+      cookieEncoding: options?.cookieEncoding ?? "base64url",
     },
     false,
   );
