@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.7.0](https://github.com/supabase/ssr/compare/v0.6.1...v0.7.0) (2025-05-13)
+
+
+### Features
+
+* bump `cookie` to 1.0.2 ([#113](https://github.com/supabase/ssr/issues/113)) ([b4a77b4](https://github.com/supabase/ssr/commit/b4a77b460fb40053d0e01efd7d0bbcfb387abd16))
+
 ## [0.6.1](https://github.com/supabase/ssr/compare/v0.6.0...v0.6.1) (2025-03-16)
 
 
