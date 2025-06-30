@@ -13,31 +13,7 @@ import { createStorageFromOptions, applyServerStorage } from "./cookies";
 import type {
   CookieOptionsWithName,
   CookieMethodsServer,
-  CookieMethodsServerDeprecated,
 } from "./types";
-
-/**
- * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
- * the `get`, `set` and `remove`. These will not be supported in the next major
- * version.
- */
-export function createServerClient<
-  Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
->(
-  supabaseUrl: string,
-  supabaseKey: string,
-  options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
-  },
-): SupabaseClient<Database, SchemaName, Schema>;
 
 /**
  * Creates a Supabase Client for use on the server-side of a server-side
@@ -131,7 +107,7 @@ export function createServerClient<
   supabaseKey: string,
   options: SupabaseClientOptions<SchemaName> & {
     cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
+    cookies: CookieMethodsServer;
     cookieEncoding?: "raw" | "base64url";
   },
 ): SupabaseClient<Database, SchemaName, Schema> {
