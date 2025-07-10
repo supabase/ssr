@@ -83,11 +83,11 @@ type ServerOptions = {
 export const createServerClient: CreateClientHelper<ServerOptions> = (
   supabaseUrl,
   supabaseKey,
-  options
+  options,
 ) => {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
+      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
     );
   }
 
@@ -97,7 +97,7 @@ export const createServerClient: CreateClientHelper<ServerOptions> = (
         ...options,
         cookieEncoding: options?.cookieEncoding ?? "base64url",
       },
-      true
+      true,
     );
 
   const client = createClient(supabaseUrl, supabaseKey, {
@@ -144,7 +144,7 @@ export const createServerClient: CreateClientHelper<ServerOptions> = (
         {
           cookieOptions: options?.cookieOptions ?? null,
           cookieEncoding: options?.cookieEncoding ?? "base64url",
-        }
+        },
       );
     }
   });

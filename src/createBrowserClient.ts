@@ -43,7 +43,7 @@ type BrowserClientOptions = {
 export const createBrowserClient: CreateClientHelper<BrowserClientOptions> = (
   supabaseUrl,
   supabaseKey,
-  options
+  options,
 ) => {
   // singleton client is created only if isSingleton is set to true, or if isSingleton is not defined and we detect a browser
   const shouldUseSingleton =
@@ -56,7 +56,7 @@ export const createBrowserClient: CreateClientHelper<BrowserClientOptions> = (
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
+      `@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
     );
   }
 
@@ -65,7 +65,7 @@ export const createBrowserClient: CreateClientHelper<BrowserClientOptions> = (
       ...options,
       cookieEncoding: options?.cookieEncoding ?? "base64url",
     },
-    false
+    false,
   );
 
   const client = createClient(supabaseUrl, supabaseKey, {

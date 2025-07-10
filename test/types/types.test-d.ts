@@ -83,7 +83,7 @@ type DatabaseWithInternals = {
   //  createBrowserClient should be able discriminate postgrest version
   const pg13Client = createBrowserClient<DatabaseWithInternals>(
     "HTTP://localhost:3000",
-    ""
+    "",
   );
   const pg12Client = createBrowserClient<Database>("HTTP://localhost:3000", "");
   const res13 = await pg13Client
@@ -96,7 +96,7 @@ type DatabaseWithInternals = {
     .maxAffected(1);
   expectType<typeof res13.data>(null);
   expectType<typeof res12.Error>(
-    "maxAffected method only available on postgrest 13+"
+    "maxAffected method only available on postgrest 13+",
   );
 }
 
@@ -136,7 +136,7 @@ type DatabaseWithInternals = {
   //  createServerClient should be able discriminate postgrest version
   const pg13Client = createServerClient<DatabaseWithInternals>(
     "HTTP://localhost:3000",
-    ""
+    "",
   );
   const pg12Client = createServerClient<Database>("HTTP://localhost:3000", "");
   const res13 = await pg13Client
@@ -149,7 +149,7 @@ type DatabaseWithInternals = {
     .maxAffected(1);
   expectType<typeof res13.data>(null);
   expectType<typeof res12.Error>(
-    "maxAffected method only available on postgrest 13+"
+    "maxAffected method only available on postgrest 13+",
   );
 }
 
