@@ -1,7 +1,4 @@
 import { describe, it, expect } from "vitest";
-
-import { MAX_CHUNK_SIZE, stringToBase64URL } from "./utils";
-import { CookieOptions } from "./types";
 import { createBrowserClient } from "./createBrowserClient";
 
 describe("createServerClient", () => {
