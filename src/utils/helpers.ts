@@ -2,26 +2,13 @@ import type { SerializeOptions } from "cookie";
 import { parse as cookieParse, serialize as cookieSerialize } from "cookie";
 
 /**
- * @deprecated Since v0.4.0: Please use {@link parseCookieHeader}. `parse` will
- * not be available for import starting v1.0.0 of `@supabase/ssr`.
- */
-export const parse = cookieParse;
-
-/**
- * @deprecated Since v0.4.0: Please use {@link serializeCookieHeader}.
- * `serialize` will not be available for import starting v1.0.0 of
- * `@supabase/ssr`.
- */
-export const serialize = cookieSerialize;
-
-/**
  * Parses the `Cookie` HTTP header into an array of cookie name-value objects.
  *
  * @param header The `Cookie` HTTP header. Decodes cookie names and values from
  * URI encoding first.
  */
 export function parseCookieHeader(
-  header: string,
+  header: string
 ): { name: string; value?: string }[] {
   const parsed = cookieParse(header);
 
@@ -41,7 +28,7 @@ export function parseCookieHeader(
 export function serializeCookieHeader(
   name: string,
   value: string,
-  options: SerializeOptions,
+  options: SerializeOptions
 ): string {
   return cookieSerialize(name, value, options);
 }

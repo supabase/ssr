@@ -7,15 +7,11 @@ import {
 
 import { VERSION } from "./version";
 import { createStorageFromOptions, applyServerStorage } from "./cookies";
-import type {
-  CookieOptionsWithName,
-  CookieMethodsServer,
-  CookieMethodsServerDeprecated,
-} from "./types";
+import type { CookieOptionsWithName, CookieMethodsServer } from "./types";
 
 type ServerOptions = {
   cookieOptions?: CookieOptionsWithName;
-  cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
+  cookies: CookieMethodsServer;
   cookieEncoding?: "raw" | "base64url";
 };
 
@@ -36,16 +32,11 @@ type ServerOptions = {
  * middleware* and use this function in it.
  *
  * When using this in a middleware, the `cookie` option must be configured to
- * use both `getAll` and `setAll`. Alternatively you can use the `get`, `set`
- * and `remove` functions. The latter are deprecated **and not recommended**
- * for most use cases due to being difficult to use properly and they do not
- * cover important edge cases. In future major versions of the library, the
- * option to configure `get`, `set` and `remove` will be removed.
+ * use both `getAll` and `setAll`.
  *
- * **IMPORTANT:** Failing to implement `getAll` and `setAll` correctly (or the
- * deprecated `get`, `set` and `remove`) including omitting them **will cause
- * significant and difficult to debug authentication issues**. They will
- * manifest as: random logouts, early session termination, JSON parsing errors,
+ * **IMPORTANT:** Failing to implement `getAll` and `setAll` correctly
+ * including omitting them **will cause significant and difficult to debug authentication issues**.
+ * They will manifest as: random logouts, early session termination, JSON parsing errors,
  * increased number of refresh token requests, or relying on garbage state.
  *
  * **Use in pages, components or routes.**
@@ -53,17 +44,15 @@ type ServerOptions = {
  * To use Supabase features server-side rendered in pages, components or routes
  * (a.k.a. actions / APIs) you must create a client with this function. Not all
  * frameworks allow the ability to set cookies or response headers when pages
- * or components are rendered. In those cases you _can omit `setAll` (or the
- * deprecated `set`, `remove`) cookie option methods_. **It is strongly
- * recommended that if the ability to set cookies and response headers is
- * present, you should configure the `setAll` (or the deprecated `set` and
- * `remove`) cookie access methods.**
+ * or components are rendered. In those cases you _can omit `setAll` cookie option methods_.
+ * **It is strongly recommended that if the ability to set cookies and response headers is
+ * present, you should configure the `setAll` cookie access methods.**
  *
  * **IMPORTANT:** If the ability to set cookies or response headers is not
  * available **middleware or an equivalent must be used.** Failing to do this
  * will cause significant and difficult to debug authentication issues.
  *
- * When `setAll` (or the deprecated `set`, `remove`) cookie methods are not
+ * When `setAll` cookie methods are not
  * configured, the Supabase Client will emit a warning if it is used in a way
  * that requires setting cookies. If you see this warning, it usually means
  * that you are using the Supabase Client in a wrong way:

@@ -7,18 +7,14 @@ import {
 import { VERSION } from "./version";
 import { isBrowser } from "./utils";
 
-import type {
-  CookieMethodsBrowser,
-  CookieMethodsBrowserDeprecated,
-  CookieOptionsWithName,
-} from "./types";
+import type { CookieMethodsBrowser, CookieOptionsWithName } from "./types";
 
 import { createStorageFromOptions } from "./cookies";
 
 let cachedBrowserClient: GenericSupabaseClient | undefined;
 
 type BrowserClientOptions = {
-  cookies: CookieMethodsBrowserDeprecated | CookieMethodsBrowser;
+  cookies: CookieMethodsBrowser;
   cookieOptions?: CookieOptionsWithName;
   cookieEncoding?: "raw" | "base64url";
   isSingleton?: boolean;
@@ -29,11 +25,9 @@ type BrowserClientOptions = {
  *
  * In most cases you should not configure the `options.cookies` object, as this
  * is automatically handled for you. If you do customize this, prefer using the
- * `getAll` and `setAll` functions over `get`, `set` and `remove`. The latter
- * are deprecated due to being difficult to correctly implement and not
- * supporting some edge-cases. Both `getAll` and `setAll` (or both `get`, `set`
- * and `remove`) must be provided. Failing to provide the methods for setting
- * will throw an exception, and in previous versions of the library will result
+ * `getAll` and `setAll` functions. Both `getAll` and `setAll` must be provided.
+ * Failing to provide the methods for setting will throw an exception,
+ * and in previous versions of the library will result
  * in difficult to debug authentication issues such as random logouts, early
  * session termination or problems with inconsistent state.
  *

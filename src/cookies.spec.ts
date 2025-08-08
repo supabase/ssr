@@ -73,7 +73,7 @@ describe("createStorageFromOptions in browser without cookie methods", () => {
       {
         cookieEncoding: "raw", // to help test readability
       },
-      false,
+      false
     );
 
     [
@@ -94,14 +94,14 @@ describe("createStorageFromOptions in browser without cookie methods", () => {
 
     let newChunkedValue = Array.from(
       { length: MAX_CHUNK_SIZE + 1 },
-      () => "x",
+      () => "x"
     ).join("");
 
     await storage.setItem("storage-key", newChunkedValue);
     await storage.removeItem("non-existent-item");
 
     expect(document.cookie).toEqual(
-      `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE)}`,
+      `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE)}`
     );
 
     document.cookie = "storage-key=value; Max-Age=123";
@@ -112,24 +112,24 @@ describe("createStorageFromOptions in browser without cookie methods", () => {
 
     newChunkedValue = Array.from(
       { length: 2 * MAX_CHUNK_SIZE + 1 },
-      () => "x",
+      () => "x"
     ).join("");
 
     await storage.setItem("storage-key", newChunkedValue);
 
     expect(document.cookie).toEqual(
-      `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE, 2 * MAX_CHUNK_SIZE)};storage-key.2=${newChunkedValue.substring(2 * MAX_CHUNK_SIZE)}`,
+      `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE, 2 * MAX_CHUNK_SIZE)};storage-key.2=${newChunkedValue.substring(2 * MAX_CHUNK_SIZE)}`
     );
 
     newChunkedValue = Array.from(
       { length: MAX_CHUNK_SIZE + 1 },
-      () => "x",
+      () => "x"
     ).join("");
 
     await storage.setItem("storage-key", newChunkedValue);
 
     expect(document.cookie).toEqual(
-      `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE)}`,
+      `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE)}`
     );
   });
 });
@@ -161,7 +161,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             },
           },
         },
-        true,
+        true
       );
 
       await setAll([
@@ -175,34 +175,6 @@ describe("createStorageFromOptions for createServerClient", () => {
       expect(warnings).toEqual([
         [
           "@supabase/ssr: createServerClient was configured without the setAll cookie method, but the client needs to set cookies. This can lead to issues such as random logouts, early session termination or increased token refresh requests. If in NextJS, check your middleware.ts file, route handlers and server actions for correctness.",
-        ],
-      ]);
-    });
-
-    it("should log a warning when only get is configured", async () => {
-      const { setAll } = createStorageFromOptions(
-        {
-          cookieEncoding: "raw", // to help test readability
-          cookies: {
-            get: async () => {
-              return null;
-            },
-          },
-        },
-        true,
-      );
-
-      await setAll([
-        {
-          name: "cookie",
-          value: "value",
-          options: { ...DEFAULT_COOKIE_OPTIONS },
-        },
-      ]);
-
-      expect(warnings).toEqual([
-        [
-          "@supabase/ssr: createServerClient was configured without set and remove cookie methods, but the client needs to set cookies. This can lead to issues such as random logouts, early session termination or increased token refresh requests. If in NextJS, check your middleware.ts file, route handlers and server actions for correctness. Consider switching to the getAll and setAll cookie methods instead of get, set and remove which are deprecated and can be difficult to use correctly.",
         ],
       ]);
     });
@@ -225,7 +197,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             },
           },
         },
-        true,
+        true
       );
 
       await storage.setItem("storage-key", "value");
@@ -251,7 +223,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             },
           },
         },
-        true,
+        true
       );
 
       await storage.removeItem("storage-key");
@@ -277,7 +249,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             setAll: async () => {},
           },
         },
-        true,
+        true
       );
 
       await storage.setItem("storage-key", "value");
@@ -304,7 +276,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             setAll: async () => {},
           },
         },
-        true,
+        true
       );
 
       await storage.removeItem("storage-key");
@@ -331,7 +303,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             setAll: async () => {},
           },
         },
-        true,
+        true
       );
 
       await storage.getItem("storage-key");
@@ -374,7 +346,7 @@ describe("createStorageFromOptions for createServerClient", () => {
             setAll: async () => {},
           },
         },
-        true,
+        true
       );
 
       const value = await storage.getItem("storage-key");
@@ -415,133 +387,12 @@ describe("createStorageFromOptions for createServerClient", () => {
             setAll: async () => {},
           },
         },
-        true,
+        true
       );
 
       const value = await storage.getItem("storage-key");
 
       expect(value).toEqual("value");
-    });
-  });
-
-  describe("storage with get, set, remove", () => {
-    it("should call get multiple times for the storage key and its chunks", async () => {
-      const getNames: string[] = [];
-
-      const { storage } = createStorageFromOptions(
-        {
-          cookieEncoding: "raw", // to help test readability
-          cookies: {
-            get: async (name: string) => {
-              getNames.push(name);
-
-              if (name === "storage-key") {
-                return "value";
-              }
-
-              return null;
-            },
-            set: async () => {},
-            remove: async () => {},
-          },
-        },
-        true,
-      );
-
-      const value = await storage.getItem("storage-key");
-
-      expect(value).toEqual("value");
-
-      expect(getNames).toEqual([
-        "storage-key",
-        "storage-key.0",
-        "storage-key.1",
-        "storage-key.2",
-        "storage-key.3",
-        "storage-key.4",
-      ]);
-    });
-
-    it("should reconstruct storage value from chunks", async () => {
-      const { storage } = createStorageFromOptions(
-        {
-          cookieEncoding: "raw", // to help test readability
-          cookies: {
-            get: async (name: string) => {
-              if (name === "storage-key.0") {
-                return "val";
-              }
-
-              if (name === "storage-key.1") {
-                return "ue";
-              }
-
-              if (name === "storage-key.3") {
-                return "leftover-chunk-value";
-              }
-
-              return null;
-            },
-            set: async () => {},
-            remove: async () => {},
-          },
-        },
-        true,
-      );
-
-      const value = await storage.getItem("storage-key");
-
-      expect(value).toEqual("value");
-    });
-  });
-
-  describe("setAll when using set, remove", () => {
-    it("should call set and remove depending on the values sent to setAll", async () => {
-      const setCalls: { name: string; value: string }[] = [];
-      const removeCalls: string[] = [];
-
-      const { setAll } = createStorageFromOptions(
-        {
-          cookieEncoding: "raw", // to help test readability
-          cookies: {
-            get: async (name: string) => {
-              return null;
-            },
-            set: async (name, value) => {
-              setCalls.push({ name, value });
-            },
-            remove: async (name) => {
-              removeCalls.push(name);
-            },
-          },
-        },
-        true,
-      );
-
-      await setAll([
-        {
-          name: "a",
-          value: "b",
-          options: { maxAge: 10 },
-        },
-        {
-          name: "b",
-          value: "c",
-          options: { maxAge: 10 },
-        },
-        {
-          name: "c",
-          value: "",
-          options: { maxAge: 0 },
-        },
-      ]);
-
-      expect(setCalls).toEqual([
-        { name: "a", value: "b" },
-        { name: "b", value: "c" },
-      ]);
-
-      expect(removeCalls).toEqual(["c"]);
     });
   });
 });
@@ -571,7 +422,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             setAll: async () => {},
           },
         },
-        false,
+        false
       );
 
       const value = await storage.getItem("storage-key");
@@ -603,7 +454,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             },
           },
         },
-        false,
+        false
       );
 
       await storage.setItem("storage-key", "value");
@@ -636,7 +487,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             },
           },
         },
-        false,
+        false
       );
 
       await storage.removeItem("storage-key");
@@ -678,12 +529,12 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             },
           },
         },
-        false,
+        false
       );
 
       const chunkedValue = Array.from(
         { length: MAX_CHUNK_SIZE + 1 },
-        () => "x",
+        () => "x"
       ).join("");
 
       await storage.setItem("storage-key", chunkedValue);
@@ -749,12 +600,12 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             },
           },
         },
-        false,
+        false
       );
 
       const chunkedValue = Array.from(
         { length: 2 * MAX_CHUNK_SIZE + 1 },
-        () => "x",
+        () => "x"
       ).join("");
 
       await storage.setItem("storage-key", chunkedValue);
@@ -824,12 +675,12 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             },
           },
         },
-        false,
+        false
       );
 
       const chunkedValue = Array.from(
         { length: MAX_CHUNK_SIZE + 1 },
-        () => "x",
+        () => "x"
       ).join("");
 
       await storage.setItem("storage-key", chunkedValue);
@@ -899,7 +750,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
             },
           },
         },
-        false,
+        false
       );
 
       await storage.setItem("storage-key", "value");
@@ -994,12 +845,12 @@ describe("applyServerStorage", () => {
             },
           },
         },
-        true,
+        true
       );
 
     const newChunkedValue = Array.from(
       { length: MAX_CHUNK_SIZE + 1 },
-      () => "x",
+      () => "x"
     ).join("");
 
     await storage.setItem("storage-key", newChunkedValue);
@@ -1012,7 +863,7 @@ describe("applyServerStorage", () => {
       { getAll, setAll, setItems, removedItems },
       {
         cookieEncoding: "raw", // to help test readability
-      },
+      }
     );
 
     expect(setAllCalls).toEqual([
