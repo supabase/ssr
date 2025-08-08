@@ -4,17 +4,17 @@ export type CookieOptions = Partial<SerializeOptions>;
 export type CookieOptionsWithName = { name?: string } & CookieOptions;
 
 export type GetCookie = (
-  name: string,
+  name: string
 ) => Promise<string | null | undefined> | string | null | undefined;
 
 export type SetCookie = (
   name: string,
   value: string,
-  options: CookieOptions,
+  options: CookieOptions
 ) => Promise<void> | void;
 export type RemoveCookie = (
   name: string,
-  options: CookieOptions,
+  options: CookieOptions
 ) => Promise<void> | void;
 
 export type GetAllCookies = () =>
@@ -23,7 +23,7 @@ export type GetAllCookies = () =>
   | null;
 
 export type SetAllCookies = (
-  cookies: { name: string; value: string; options: CookieOptions }[],
+  cookies: { name: string; value: string; options: CookieOptions }[]
 ) => Promise<void> | void;
 
 export type CookieMethodsBrowserDeprecated = {

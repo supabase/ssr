@@ -8,6 +8,7 @@ import { VERSION } from "./version";
 import { isBrowser } from "./utils";
 
 import type {
+  CookieMethodsBrowser,
   CookieMethodsBrowserDeprecated,
   CookieOptionsWithName,
 } from "./types";
@@ -17,7 +18,7 @@ import { createStorageFromOptions } from "./cookies";
 let cachedBrowserClient: GenericSupabaseClient | undefined;
 
 type BrowserClientOptions = {
-  cookies: CookieMethodsBrowserDeprecated;
+  cookies: CookieMethodsBrowserDeprecated | CookieMethodsBrowser;
   cookieOptions?: CookieOptionsWithName;
   cookieEncoding?: "raw" | "base64url";
   isSingleton?: boolean;
