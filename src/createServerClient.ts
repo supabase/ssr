@@ -1,12 +1,9 @@
 import {
   AuthChangeEvent,
   createClient,
-  SupabaseClient,
+  CreateClientHelper,
+  GenericSupabaseClient,
 } from "@supabase/supabase-js";
-import type {
-  GenericSchema,
-  SupabaseClientOptions,
-} from "@supabase/supabase-js/dist/module/lib/types";
 
 import { VERSION } from "./version";
 import { createStorageFromOptions, applyServerStorage } from "./cookies";
@@ -16,28 +13,11 @@ import type {
   CookieMethodsServerDeprecated,
 } from "./types";
 
-/**
- * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
- * the `get`, `set` and `remove`. These will not be supported in the next major
- * version.
- */
-export function createServerClient<
-  Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
->(
-  supabaseUrl: string,
-  supabaseKey: string,
-  options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
-  },
-): SupabaseClient<Database, SchemaName, Schema>;
+type ServerOptions = {
+  cookieOptions?: CookieOptionsWithName;
+  cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
+  cookieEncoding?: "raw" | "base64url";
+};
 
 /**
  * Creates a Supabase Client for use on the server-side of a server-side
@@ -100,44 +80,14 @@ export function createServerClient<
  * @param supabaseKey The `anon` API key of the Supabase project.
  * @param options Various configuration options.
  */
-export function createServerClient<
-  Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
->(
-  supabaseUrl: string,
-  supabaseKey: string,
-  options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServer;
-    cookieEncoding?: "raw" | "base64url";
-  },
-): SupabaseClient<Database, SchemaName, Schema>;
-
-export function createServerClient<
-  Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
->(
-  supabaseUrl: string,
-  supabaseKey: string,
-  options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
-  },
-): SupabaseClient<Database, SchemaName, Schema> {
+export const createServerClient: CreateClientHelper<ServerOptions> = (
+  supabaseUrl,
+  supabaseKey,
+  options
+) => {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
+      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
     );
   }
 
@@ -147,34 +97,30 @@ export function createServerClient<
         ...options,
         cookieEncoding: options?.cookieEncoding ?? "base64url",
       },
-      true,
+      true
     );
 
-  const client = createClient<Database, SchemaName, Schema>(
-    supabaseUrl,
-    supabaseKey,
-    {
-      ...options,
-      global: {
-        ...options?.global,
-        headers: {
-          ...options?.global?.headers,
-          "X-Client-Info": `supabase-ssr/${VERSION} createServerClient`,
-        },
-      },
-      auth: {
-        ...(options?.cookieOptions?.name
-          ? { storageKey: options.cookieOptions.name }
-          : null),
-        ...options?.auth,
-        flowType: "pkce",
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        persistSession: true,
-        storage,
+  const client = createClient(supabaseUrl, supabaseKey, {
+    ...options,
+    global: {
+      ...options?.global,
+      headers: {
+        ...options?.global?.headers,
+        "X-Client-Info": `supabase-ssr/${VERSION} createServerClient`,
       },
     },
-  );
+    auth: {
+      ...(options?.cookieOptions?.name
+        ? { storageKey: options.cookieOptions.name }
+        : null),
+      ...options?.auth,
+      flowType: "pkce",
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: true,
+      storage,
+    },
+  });
 
   client.auth.onAuthStateChange(async (event: AuthChangeEvent) => {
     // The SIGNED_IN event is fired very often, but we don't need to
@@ -198,10 +144,10 @@ export function createServerClient<
         {
           cookieOptions: options?.cookieOptions ?? null,
           cookieEncoding: options?.cookieEncoding ?? "base64url",
-        },
+        }
       );
     }
   });
 
-  return client;
-}
+  return client as GenericSupabaseClient;
+};
