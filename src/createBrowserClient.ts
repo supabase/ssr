@@ -51,7 +51,7 @@ export function createBrowserClient<
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
-  }
+  },
 ): SupabaseClient<Database, SchemaName>;
 
 /**
@@ -76,7 +76,7 @@ export function createBrowserClient<
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
-  }
+  },
 ): SupabaseClient<Database, SchemaName>;
 
 export function createBrowserClient<
@@ -96,7 +96,7 @@ export function createBrowserClient<
     cookieOptions?: CookieOptionsWithName;
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
-  }
+  },
 ): SupabaseClient<Database, SchemaName> {
   // singleton client is created only if isSingleton is set to true, or if isSingleton is not defined and we detect a browser
   const shouldUseSingleton =
@@ -109,7 +109,7 @@ export function createBrowserClient<
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
+      `@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
     );
   }
 
@@ -118,7 +118,7 @@ export function createBrowserClient<
       ...options,
       cookieEncoding: options?.cookieEncoding ?? "base64url",
     },
-    false
+    false,
   );
 
   const client = createClient<Database, SchemaName>(supabaseUrl, supabaseKey, {

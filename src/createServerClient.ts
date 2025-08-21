@@ -34,7 +34,7 @@ export function createServerClient<
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServerDeprecated;
     cookieEncoding?: "raw" | "base64url";
-  }
+  },
 ): SupabaseClient<Database, SchemaName>;
 
 /**
@@ -114,7 +114,7 @@ export function createServerClient<
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServer;
     cookieEncoding?: "raw" | "base64url";
-  }
+  },
 ): SupabaseClient<Database, SchemaName>;
 
 export function createServerClient<
@@ -133,11 +133,11 @@ export function createServerClient<
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
     cookieEncoding?: "raw" | "base64url";
-  }
+  },
 ): SupabaseClient<Database, SchemaName> {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
+      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
     );
   }
 
@@ -147,7 +147,7 @@ export function createServerClient<
         ...options,
         cookieEncoding: options?.cookieEncoding ?? "base64url",
       },
-      true
+      true,
     );
 
   const client = createClient<Database, SchemaName>(supabaseUrl, supabaseKey, {
@@ -195,7 +195,7 @@ export function createServerClient<
         {
           cookieOptions: options?.cookieOptions ?? null,
           cookieEncoding: options?.cookieEncoding ?? "base64url",
-        }
+        },
       );
     }
   });
