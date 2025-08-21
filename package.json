@@ -33,7 +33,7 @@
   "homepage": "https://github.com/supabase/ssr#readme",
   "devDependencies": {
     "@eslint/js": "^9.3.0",
-    "@supabase/supabase-js": "https://pkg.pr.new/@supabase/supabase-js@1537",
+    "@supabase/supabase-js": "^2.43.4",
     "@vitest/coverage-v8": "^1.6.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
