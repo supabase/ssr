@@ -1,8 +1,8 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import type {
-  GenericSchema,
+import {
+  createClient,
+  SupabaseClient,
   SupabaseClientOptions,
-} from "@supabase/supabase-js/dist/module/lib/types";
+} from "@supabase/supabase-js";
 
 import { VERSION } from "./version";
 import { isBrowser } from "./utils";
@@ -36,12 +36,13 @@ let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
  */
 export function createBrowserClient<
   Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
+  SchemaName extends string &
+    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
+    Database,
+    "__InternalSupabase"
+  >
     ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
+    : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -51,7 +52,7 @@ export function createBrowserClient<
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
   },
-): SupabaseClient<Database, SchemaName, Schema>;
+): SupabaseClient<Database, SchemaName>;
 
 /**
  * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
@@ -60,12 +61,13 @@ export function createBrowserClient<
  */
 export function createBrowserClient<
   Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
+  SchemaName extends string &
+    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
+    Database,
+    "__InternalSupabase"
+  >
     ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
+    : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -75,16 +77,17 @@ export function createBrowserClient<
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
   },
-): SupabaseClient<Database, SchemaName, Schema>;
+): SupabaseClient<Database, SchemaName>;
 
 export function createBrowserClient<
   Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
+  SchemaName extends string &
+    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
+    Database,
+    "__InternalSupabase"
+  >
     ? "public"
-    : string & keyof Database,
-  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
-    ? Database[SchemaName]
-    : any,
+    : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -94,7 +97,7 @@ export function createBrowserClient<
     cookieEncoding?: "raw" | "base64url";
     isSingleton?: boolean;
   },
-): SupabaseClient<Database, SchemaName, Schema> {
+): SupabaseClient<Database, SchemaName> {
   // singleton client is created only if isSingleton is set to true, or if isSingleton is not defined and we detect a browser
   const shouldUseSingleton =
     options?.isSingleton === true ||
@@ -118,31 +121,28 @@ export function createBrowserClient<
     false,
   );
 
-  const client = createClient<Database, SchemaName, Schema>(
-    supabaseUrl,
-    supabaseKey,
-    {
-      ...options,
-      global: {
-        ...options?.global,
-        headers: {
-          ...options?.global?.headers,
-          "X-Client-Info": `supabase-ssr/${VERSION} createBrowserClient`,
-        },
-      },
-      auth: {
-        ...options?.auth,
-        ...(options?.cookieOptions?.name
-          ? { storageKey: options.cookieOptions.name }
-          : null),
-        flowType: "pkce",
-        autoRefreshToken: isBrowser(),
-        detectSessionInUrl: isBrowser(),
-        persistSession: true,
-        storage,
+  const client = createClient<Database, SchemaName>(supabaseUrl, supabaseKey, {
+    // TODO: resolve type error
+    ...(options as any),
+    global: {
+      ...options?.global,
+      headers: {
+        ...options?.global?.headers,
+        "X-Client-Info": `supabase-ssr/${VERSION} createBrowserClient`,
       },
     },
-  );
+    auth: {
+      ...options?.auth,
+      ...(options?.cookieOptions?.name
+        ? { storageKey: options.cookieOptions.name }
+        : null),
+      flowType: "pkce",
+      autoRefreshToken: isBrowser(),
+      detectSessionInUrl: isBrowser(),
+      persistSession: true,
+      storage,
+    },
+  });
 
   if (shouldUseSingleton) {
     cachedBrowserClient = client;
