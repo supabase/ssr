@@ -141,6 +141,13 @@ export function createBrowserClient<
       detectSessionInUrl: isBrowser(),
       persistSession: true,
       storage,
+      ...(options?.cookies &&
+      "encode" in options.cookies &&
+      options.cookies.encode === "tokens-only"
+        ? {
+            userStorage: options?.auth?.userStorage ?? window.localStorage,
+          }
+        : null),
     },
   });
 

@@ -51,3 +51,25 @@ export function isBrowser() {
     typeof window !== "undefined" && typeof window.document !== "undefined"
   );
 }
+
+/**
+ * Returns a localStorage-like object that stores the key-value pairs in
+ * memory.
+ */
+export function memoryLocalStorageAdapter(
+  store: { [key: string]: string } = {},
+) {
+  return {
+    getItem: (key: string) => {
+      return store[key] || null;
+    },
+
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+  };
+}
