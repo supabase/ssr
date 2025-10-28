@@ -74,6 +74,10 @@ jobs:
         with:
           node-version: 20
 
+      # Ensure npm 11.5.1 or later is installed for trusted publishing support
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Build release artifacts
         if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
         run: |
@@ -88,9 +92,6 @@ jobs:
           do
             sed -i 's|"version": "0.0.0",|"version": "'"$RELEASE_VERSION"'",|g' "$f"
           done
-
-          echo '//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}' > ~/.npmrc
-
 
           DIST_TAG=patched
           if [ "$RELEASE_CANDIDATE" == "true" ]
