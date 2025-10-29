@@ -1,5 +1,14 @@
 # @supabase/ssr
 
+## [0.8.0](https://github.com/supabase/ssr/compare/v0.7.0...v0.8.0) (2025-10-29)
+
+
+### Features
+
+* adds `cookies.encode` option allowing minimal cookie sizes ([#126](https://github.com/supabase/ssr/issues/126)) ([cf38b22](https://github.com/supabase/ssr/commit/cf38b2268f0c6ea1a9b8df9edf16adb9d72ca8d5))
+* publish SSR under deprecated auth-helpers package names ([#127](https://github.com/supabase/ssr/issues/127)) ([e8b6102](https://github.com/supabase/ssr/commit/e8b61021f3d3cea8973b5298f0380e312976de90))
+* update supabase-js to latest ([#133](https://github.com/supabase/ssr/issues/133)) ([d65044d](https://github.com/supabase/ssr/commit/d65044d9c39940ff9187057bb157fa1ce7e8ffea))
+
 ## [0.7.0](https://github.com/supabase/ssr/compare/v0.6.1...v0.7.0) (2025-08-22)
 
 
