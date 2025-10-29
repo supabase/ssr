@@ -380,4 +380,40 @@ describe("createServerClient", () => {
       });
     });
   });
+
+  describe("proactive session initialization", () => {
+    it("should automatically call getSession to prevent race conditions", async () => {
+      let getSessionCalled = false;
+
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "publishable-key",
+        {
+          cookies: {
+            getAll() {
+              return [];
+            },
+            setAll() {},
+          },
+          global: {
+            fetch: async () => {
+              throw new Error("Should not be called in this test");
+            },
+          },
+        },
+      );
+
+      // Spy on getSession
+      const originalGetSession = supabase.auth.getSession.bind(supabase.auth);
+      supabase.auth.getSession = async () => {
+        getSessionCalled = true;
+        return originalGetSession();
+      };
+
+      // Wait for queue to execute
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(getSessionCalled).toBe(true);
+    });
+  });
 });
