@@ -1,18 +1,18 @@
 import type { SerializeOptions } from "cookie";
-import { parse as cookieParse, serialize as cookieSerialize } from "cookie";
+import * as cookie from "cookie";
 
 /**
  * @deprecated Since v0.4.0: Please use {@link parseCookieHeader}. `parse` will
  * not be available for import starting v1.0.0 of `@supabase/ssr`.
  */
-export const parse = cookieParse;
+export const parse = cookie.parse;
 
 /**
  * @deprecated Since v0.4.0: Please use {@link serializeCookieHeader}.
  * `serialize` will not be available for import starting v1.0.0 of
  * `@supabase/ssr`.
  */
-export const serialize = cookieSerialize;
+export const serialize = cookie.serialize;
 
 /**
  * Parses the `Cookie` HTTP header into an array of cookie name-value objects.
@@ -23,7 +23,7 @@ export const serialize = cookieSerialize;
 export function parseCookieHeader(
   header: string,
 ): { name: string; value?: string }[] {
-  const parsed = cookieParse(header);
+  const parsed = cookie.parse(header);
 
   return Object.keys(parsed ?? {}).map((name) => ({
     name,
@@ -43,7 +43,7 @@ export function serializeCookieHeader(
   value: string,
   options: SerializeOptions,
 ): string {
-  return cookieSerialize(name, value, options);
+  return cookie.serialize(name, value, options);
 }
 
 export function isBrowser() {
