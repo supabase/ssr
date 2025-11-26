@@ -1,5 +1,17 @@
 # @supabase/ssr
 
+## [0.7.0](https://github.com/supabase/ssr/compare/v0.6.1...v0.7.0) (2025-08-22)
+
+
+### Features
+
+* bump `cookie` to 1.0.2 ([#113](https://github.com/supabase/ssr/issues/113)) ([b4a77b4](https://github.com/supabase/ssr/commit/b4a77b460fb40053d0e01efd7d0bbcfb387abd16))
+
+
+### Bug Fixes
+
+* remove usage of internal type params ([#123](https://github.com/supabase/ssr/issues/123)) ([8f3e89e](https://github.com/supabase/ssr/commit/8f3e89ed29d0c9622b4d9d1c84b4d586c4c5a9ce))
+
 ## [0.6.1](https://github.com/supabase/ssr/compare/v0.6.0...v0.6.1) (2025-03-16)
 
 
