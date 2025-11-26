@@ -128,28 +128,37 @@ jobs:
           # This helps users still using the old packages (especially due to LLM recommendations)
           echo "Publishing under legacy auth-helpers names..."
 
+          # Calculate legacy auth-helpers version with +6 minor offset
+          # SSR 0.8.0 -> legacy 0.14.0, SSR 0.9.1 -> legacy 0.15.1
+          SSR_MINOR=$(echo "$RELEASE_VERSION" | cut -d. -f2)
+          SSR_PATCH=$(echo "$RELEASE_VERSION" | cut -d. -f3)
+          LEGACY_VERSION="0.$((SSR_MINOR + 6)).$SSR_PATCH"
+          echo "Legacy auth-helpers version: $LEGACY_VERSION (from SSR $RELEASE_VERSION)"
+
           # Publish as @supabase/auth-helpers-nextjs
-          echo "Publishing as @supabase/auth-helpers-nextjs..."
+          echo "Publishing as @supabase/auth-helpers-nextjs@$LEGACY_VERSION..."
           sed -i 's|"name": "@supabase/ssr"|"name": "@supabase/auth-helpers-nextjs"|g' package.json
+          sed -i 's|"version": "[^"]*"|"version": "'"$LEGACY_VERSION"'"|g' package.json
           npm publish --provenance --tag "$DIST_TAG"
 
           # Publish as @supabase/auth-helpers-react
-          echo "Publishing as @supabase/auth-helpers-react..."
+          echo "Publishing as @supabase/auth-helpers-react@$LEGACY_VERSION..."
           sed -i 's|"name": "@supabase/auth-helpers-nextjs"|"name": "@supabase/auth-helpers-react"|g' package.json
           npm publish --provenance --tag "$DIST_TAG"
 
           # Publish as @supabase/auth-helpers-remix
-          echo "Publishing as @supabase/auth-helpers-remix..."
+          echo "Publishing as @supabase/auth-helpers-remix@$LEGACY_VERSION..."
           sed -i 's|"name": "@supabase/auth-helpers-react"|"name": "@supabase/auth-helpers-remix"|g' package.json
           npm publish --provenance --tag "$DIST_TAG"
 
           # Publish as @supabase/auth-helpers-sveltekit
-          echo "Publishing as @supabase/auth-helpers-sveltekit..."
+          echo "Publishing as @supabase/auth-helpers-sveltekit@$LEGACY_VERSION..."
           sed -i 's|"name": "@supabase/auth-helpers-remix"|"name": "@supabase/auth-helpers-sveltekit"|g' package.json
           npm publish --provenance --tag "$DIST_TAG"
 
-          # Restore original package name for consistency
+          # Restore original package name and version for consistency
           sed -i 's|"name": "@supabase/auth-helpers-sveltekit"|"name": "@supabase/ssr"|g' package.json
+          sed -i 's|"version": "[^"]*"|"version": "'"$RELEASE_VERSION"'"|g' package.json
 
       - name: Create GitHub release and branches
         if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
