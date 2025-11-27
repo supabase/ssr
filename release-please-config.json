@@ -1,0 +1,9 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "@supabase/ssr",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}
