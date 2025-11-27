@@ -160,6 +160,13 @@ jobs:
           sed -i 's|"name": "@supabase/auth-helpers-sveltekit"|"name": "@supabase/ssr"|g' package.json
           sed -i 's|"version": "[^"]*"|"version": "'"$RELEASE_VERSION"'"|g' package.json
 
+          # Deprecate the auth-helpers packages after publishing
+          echo "Deprecating auth-helpers packages..."
+          npm deprecate @supabase/auth-helpers-nextjs "This package is deprecated. Please use @supabase/ssr instead. See https://supabase.com/docs/guides/auth/server-side/overview for migration guide."
+          npm deprecate @supabase/auth-helpers-react "This package is deprecated. Please use @supabase/ssr instead. See https://supabase.com/docs/guides/auth/server-side/overview for migration guide."
+          npm deprecate @supabase/auth-helpers-remix "This package is deprecated. Please use @supabase/ssr instead. See https://supabase.com/docs/guides/auth/server-side/overview for migration guide."
+          npm deprecate @supabase/auth-helpers-sveltekit "This package is deprecated. Please use @supabase/ssr instead. See https://supabase.com/docs/guides/auth/server-side/overview for migration guide."
+
       - name: Create GitHub release and branches
         if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
         run: |
