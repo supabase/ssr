@@ -120,36 +120,7 @@ jobs:
             fi
           fi
 
-          echo "Publishing @supabase/ssr now..."
-
           npm publish --provenance --tag "$DIST_TAG"
-
-          # Also publish under deprecated auth-helpers names for backward compatibility
-          # This helps users still using the old packages (especially due to LLM recommendations)
-          echo "Publishing under legacy auth-helpers names..."
-
-          # Publish as @supabase/auth-helpers-nextjs
-          echo "Publishing as @supabase/auth-helpers-nextjs..."
-          sed -i 's|"name": "@supabase/ssr"|"name": "@supabase/auth-helpers-nextjs"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Publish as @supabase/auth-helpers-react
-          echo "Publishing as @supabase/auth-helpers-react..."
-          sed -i 's|"name": "@supabase/auth-helpers-nextjs"|"name": "@supabase/auth-helpers-react"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Publish as @supabase/auth-helpers-remix
-          echo "Publishing as @supabase/auth-helpers-remix..."
-          sed -i 's|"name": "@supabase/auth-helpers-react"|"name": "@supabase/auth-helpers-remix"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Publish as @supabase/auth-helpers-sveltekit
-          echo "Publishing as @supabase/auth-helpers-sveltekit..."
-          sed -i 's|"name": "@supabase/auth-helpers-remix"|"name": "@supabase/auth-helpers-sveltekit"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Restore original package name for consistency
-          sed -i 's|"name": "@supabase/auth-helpers-sveltekit"|"name": "@supabase/ssr"|g' package.json
 
       - name: Create GitHub release and branches
         if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
