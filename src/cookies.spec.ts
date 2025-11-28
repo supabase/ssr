@@ -1069,4 +1069,80 @@ describe("applyServerStorage", () => {
       },
     ]);
   });
+
+  it("should log helpful error when setAll throws after response is sent", async () => {
+    const errors: any[][] = [];
+    const originalError = console.error;
+    console.error = (...args: any[]) => {
+      errors.push(args);
+    };
+
+    try {
+      const { storage, getAll, setAll, setItems, removedItems } =
+        createStorageFromOptions(
+          {
+            cookieEncoding: "raw",
+            cookies: {
+              getAll: async () => [],
+              setAll: async () => {
+                // Simulate the SvelteKit error when response is already sent
+                throw new Error(
+                  "Cannot use `cookies.set(...)` after the response has been generated",
+                );
+              },
+            },
+          },
+          true,
+        );
+
+      await storage.setItem("storage-key", "value");
+
+      // This should throw, but log helpful context first
+      await expect(
+        applyServerStorage(
+          { getAll, setAll, setItems, removedItems },
+          {
+            cookieEncoding: "raw",
+          },
+        ),
+      ).rejects.toThrow("after the response has been generated");
+
+      expect(errors.length).toEqual(1);
+      expect(errors[0][0]).toContain(
+        "Cannot set cookies after response has been sent",
+      );
+      expect(errors[0][0]).toContain("Token refresh completed too late");
+    } finally {
+      console.error = originalError;
+    }
+  });
+
+  it("should re-throw errors that are not related to response already sent", async () => {
+    const { storage, getAll, setAll, setItems, removedItems } =
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: async () => {
+              // Simulate a different error
+              throw new Error("Network error or some other issue");
+            },
+          },
+        },
+        true,
+      );
+
+    await storage.setItem("storage-key", "value");
+
+    // This SHOULD throw because it's not a "response already sent" error
+    await expect(
+      applyServerStorage(
+        { getAll, setAll, setItems, removedItems },
+        {
+          cookieEncoding: "raw",
+        },
+      ),
+    ).rejects.toThrow("Network error or some other issue");
+  });
 });
