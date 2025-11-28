@@ -10,181 +10,70 @@ permissions:
   contents: read
 
 jobs:
-  release_please:
+  release:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: write
       pull-requests: write
+      id-token: write
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
-        with:
-          release-type: go
-          target-branch: ${{ github.ref_name }}
 
       - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
         with:
           fetch-depth: 0
 
-      - if: ${{ steps.release.outputs }}
-        id: versions
-        run: |
-          set -ex
-
-          RELEASE_CANDIDATE=true
-          NOT_RELEASE_CANDIDATE='${{ steps.release.outputs.release_created }}'
-          if [ "$NOT_RELEASE_CANDIDATE" == "true" ]
-          then
-            RELEASE_CANDIDATE=false
-          fi
-
-          MAIN_RELEASE_VERSION=x
-          RELEASE_VERSION=y
-
-          if [ "$RELEASE_CANDIDATE" == "true" ]
-          then
-            # Release please doesn't tell you the candidate version when it
-            # creates the PR, so we have to take it from the title.
-            MAIN_RELEASE_VERSION=$(node -e "console.log('${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).title }}'.split(' ').reverse().find(x => x.match(/[0-9]+[.][0-9]+[.][0-9]+/)))")
-
-            # Use git describe tags to identify the number of commits the branch
-            # is ahead of the most recent non-release-candidate tag, which is
-            # part of the rc.<commits> value.
-            RELEASE_VERSION=$MAIN_RELEASE_VERSION-rc.$(node -e "console.log('$(git describe --tags --exclude rc*)'.split('-')[1])")
-
-            # release-please only ignores releases that have a form like [A-Z0-9]<version>, so prefixing with rc<version>
-            RELEASE_NAME="rc$RELEASE_VERSION"
-          else
-            MAIN_RELEASE_VERSION=${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}
-            RELEASE_VERSION="$MAIN_RELEASE_VERSION"
-            RELEASE_NAME="v$RELEASE_VERSION"
-          fi
-
-          echo "MAIN_RELEASE_VERSION=${MAIN_RELEASE_VERSION}" >> "${GITHUB_ENV}"
-          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> "${GITHUB_ENV}"
-          echo "RELEASE_CANDIDATE=${RELEASE_CANDIDATE}" >> "${GITHUB_ENV}"
-          echo "RELEASE_NAME=${RELEASE_NAME}" >> "${GITHUB_ENV}"
-
-          echo "MAIN_RELEASE_VERSION=${MAIN_RELEASE_VERSION}" >> "${GITHUB_OUTPUT}"
-          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> "${GITHUB_OUTPUT}"
-          echo "RELEASE_CANDIDATE=${RELEASE_CANDIDATE}" >> "${GITHUB_OUTPUT}"
-          echo "RELEASE_NAME=${RELEASE_NAME}" >> "${GITHUB_OUTPUT}"
-
       - uses: actions/setup-node@v4
-        if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
         with:
-          node-version: 20
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
 
-      # Ensure npm 11.5.1 or later is installed for trusted publishing support
-      - name: Update npm
-        run: npm install -g npm@latest
+      - run: npm install -g npm@latest
 
-      - name: Build release artifacts
-        if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
+      - name: Determine version
+        id: version
         run: |
-          set -ex
+          if [ "${{ steps.release.outputs.release_created }}" == "true" ]; then
+            VERSION="${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}"
+            TAG="latest"
 
-          echo "export const VERSION = '$RELEASE_VERSION';" > src/version.ts
+            # For release branches, check if this is the latest release branch
+            if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+              LATEST_BRANCH=$(git branch -r --list 'origin/release/*' --sort=-v:refname | head -n 1 | tr -d ' ')
+              CURRENT_BRANCH="origin/${GITHUB_REF#refs/heads/}"
+              if [ "$LATEST_BRANCH" != "$CURRENT_BRANCH" ]; then
+                TAG="patched"
+              fi
+            fi
+          else
+            # RC only for main branch
+            if [[ "$GITHUB_REF" != refs/heads/main ]]; then
+              echo "skip=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
 
+            # RC version from git describe, bump minor
+            DESCRIBE=$(git describe --tags --always)
+            BASE=$(echo "$DESCRIBE" | sed 's/^v//' | cut -d'-' -f1)
+            MAJOR=$(echo "$BASE" | cut -d'.' -f1)
+            MINOR=$(echo "$BASE" | cut -d'.' -f2)
+            COMMITS=$(echo "$DESCRIBE" | cut -d'-' -f2)
+            NEXT_MINOR=$((MINOR + 1))
+            VERSION="${MAJOR}.${NEXT_MINOR}.0-rc.${COMMITS}"
+            TAG="rc"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build
+        if: ${{ steps.version.outputs.skip != 'true' }}
+        run: |
+          echo "export const VERSION = '${{ steps.version.outputs.version }}';" > src/version.ts
           npm ci
           npm run build
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
 
-          for f in package.json package-lock.json
-          do
-            sed -i 's|"version": "0.0.0",|"version": "'"$RELEASE_VERSION"'",|g' "$f"
-          done
-
-          DIST_TAG=patched
-          if [ "$RELEASE_CANDIDATE" == "true" ]
-          then
-            DIST_TAG=rc
-          elif [ "$GITHUB_REF" == "refs/heads/main" ] || [ "$GITHUB_REF" == "refs/heads/master" ]
-          then
-            # This is the main branch and it's not a prerelease, so the dist-tag should be `latest`.
-            DIST_TAG=latest
-          elif [[ "$GITHUB_REF" == "refs/heads/release/"* ]]
-          then
-            # This is a release branch. We need to determine if this release
-            # branch is the _latest_ release branch. If yes, use
-            # DIST_TAG=latest. Make sure checkout action runs with
-            # fetch-depth: 0!
-
-            LATEST_BRANCH=$(git branch -al origin/release/* --sort=-v:refname | head -n 1 | tr -d "* \t")
-            REF_AS_REMOTE_BRANCH=$(echo "$GITHUB_REF" | sed "s|refs/heads/|remotes/origin/|g")
-
-            if [ "$LATEST_BRANCH" == "$REF_AS_REMOTE_BRANCH" ]
-            then
-              DIST_TAG=latest
-            fi
-          fi
-
-          echo "Publishing @supabase/ssr now..."
-
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Also publish under deprecated auth-helpers names for backward compatibility
-          # This helps users still using the old packages (especially due to LLM recommendations)
-          echo "Publishing under legacy auth-helpers names..."
-
-          # Publish as @supabase/auth-helpers-nextjs
-          echo "Publishing as @supabase/auth-helpers-nextjs..."
-          sed -i 's|"name": "@supabase/ssr"|"name": "@supabase/auth-helpers-nextjs"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Publish as @supabase/auth-helpers-react
-          echo "Publishing as @supabase/auth-helpers-react..."
-          sed -i 's|"name": "@supabase/auth-helpers-nextjs"|"name": "@supabase/auth-helpers-react"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Publish as @supabase/auth-helpers-remix
-          echo "Publishing as @supabase/auth-helpers-remix..."
-          sed -i 's|"name": "@supabase/auth-helpers-react"|"name": "@supabase/auth-helpers-remix"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Publish as @supabase/auth-helpers-sveltekit
-          echo "Publishing as @supabase/auth-helpers-sveltekit..."
-          sed -i 's|"name": "@supabase/auth-helpers-remix"|"name": "@supabase/auth-helpers-sveltekit"|g' package.json
-          npm publish --provenance --tag "$DIST_TAG"
-
-          # Restore original package name for consistency
-          sed -i 's|"name": "@supabase/auth-helpers-sveltekit"|"name": "@supabase/ssr"|g' package.json
-
-      - name: Create GitHub release and branches
-        if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
-        run: |
-          set -ex
-
-          if [ "$RELEASE_CANDIDATE" == "true" ]
-          then
-            PR_NUMBER='${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).number }}'
-
-            GH_TOKEN='${{ github.token }}' gh release \
-              create $RELEASE_NAME \
-              --title "v$RELEASE_VERSION" \
-              --prerelease \
-              -n "This is a release candidate. See release-please PR #$PR_NUMBER for context."
-
-            GH_TOKEN='${{ github.token }}' gh pr comment "$PR_NUMBER" \
-              -b "Release candidate [v$RELEASE_VERSION](https://github.com/supabase/ssr/releases/tag/$RELEASE_NAME) published."
-          else
-            if [ "$GITHUB_REF" == "refs/heads/main" ] || [ "$GITHUB_REF" == "refs/heads/master" ]
-            then
-              IS_PATCH_ZERO=$(node -e "console.log('$RELEASE_VERSION'.endsWith('.0'))")
-
-              if [ "$IS_PATCH_ZERO" == "true" ]
-              then
-                # Only create release branch if patch version is 0, as this
-                # means that the release can be patched in the future.
-
-                GH_TOKEN='${{ github.token }}' gh api \
-                  --method POST \
-                  -H "Accept: application/vnd.github+json" \
-                  -H "X-GitHub-Api-Version: 2022-11-28" \
-                  /repos/supabase/ssr/git/refs \
-                  -f "ref=refs/heads/release/${RELEASE_VERSION}" \
-                  -f "sha=$GITHUB_SHA"
-                fi
-              fi
-          fi
+      - name: Publish
+        if: ${{ steps.version.outputs.skip != 'true' }}
+        run: npm publish --provenance --tag ${{ steps.version.outputs.tag }}
