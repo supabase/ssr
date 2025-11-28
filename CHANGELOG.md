@@ -1,5 +1,42 @@
 # @supabase/ssr
 
+## [0.9.0](https://github.com/supabase/ssr/compare/ssr-v0.8.0...ssr-v0.9.0) (2025-11-28)
+
+
+### Features
+
+* adds `cookies.encode` option allowing minimal cookie sizes ([#126](https://github.com/supabase/ssr/issues/126)) ([cf38b22](https://github.com/supabase/ssr/commit/cf38b2268f0c6ea1a9b8df9edf16adb9d72ca8d5))
+* bump `cookie` to 1.0.2 ([#113](https://github.com/supabase/ssr/issues/113)) ([b4a77b4](https://github.com/supabase/ssr/commit/b4a77b460fb40053d0e01efd7d0bbcfb387abd16))
+* full rewrite using `getAll` and `setAll` cookie methods ([#1](https://github.com/supabase/ssr/issues/1)) ([b6ae192](https://github.com/supabase/ssr/commit/b6ae192aeb37ac6948637955cf1d3d6179b90065))
+* improve cookie chunk handling via base64url+length encoding ([#90](https://github.com/supabase/ssr/issues/90)) ([6deb687](https://github.com/supabase/ssr/commit/6deb6871caa09bcc27496371df6eb1a5e5882534))
+* publish SSR under deprecated auth-helpers package names ([#127](https://github.com/supabase/ssr/issues/127)) ([e8b6102](https://github.com/supabase/ssr/commit/e8b61021f3d3cea8973b5298f0380e312976de90))
+* update CI so it runs on release as well ([#33](https://github.com/supabase/ssr/issues/33)) ([4517996](https://github.com/supabase/ssr/commit/4517996a4eea6d41b8ad07c769c78a10b9ee63aa))
+* update supabase-js to latest ([#133](https://github.com/supabase/ssr/issues/133)) ([d65044d](https://github.com/supabase/ssr/commit/d65044d9c39940ff9187057bb157fa1ce7e8ffea))
+* update supabase-js to latest ([#145](https://github.com/supabase/ssr/issues/145)) ([08bf7d6](https://github.com/supabase/ssr/commit/08bf7d6d3c471cb1569b7cb459bd9acebdb9e3f0))
+* upgrade cookie dependency and cleanup imports ([#77](https://github.com/supabase/ssr/issues/77)) ([9524528](https://github.com/supabase/ssr/commit/95245282e67ce649b58504e3a98200797b7cd8f1))
+
+
+### Bug Fixes
+
+* add @types/cookies to dependencies ([#63](https://github.com/supabase/ssr/issues/63)) ([47e5f16](https://github.com/supabase/ssr/commit/47e5f16b48e4ffbe889339410f50630aba734eac))
+* add `create*Client` string in `x-client-info` ([#85](https://github.com/supabase/ssr/issues/85)) ([f271acc](https://github.com/supabase/ssr/commit/f271accfea0454b965abc8b9b7e9bb5d55d72053))
+* allow use of `createBrowserClient` without `window` present ([#20](https://github.com/supabase/ssr/issues/20)) ([27d868d](https://github.com/supabase/ssr/commit/27d868d530925805fe2f3577ae716ece40dd3ab6))
+* check chunkedCookie is string in server client ([#57](https://github.com/supabase/ssr/issues/57)) ([549fe62](https://github.com/supabase/ssr/commit/549fe62813fb9c7277f7eda9e46ee0420f8e0b5f))
+* cookies console warnings ([#136](https://github.com/supabase/ssr/issues/136)) ([64ff6b3](https://github.com/supabase/ssr/commit/64ff6b3abaa76d9425eaec03a834981765c0dab9))
+* deprecate `parse`, `serialize` exports for more useful functions ([#14](https://github.com/supabase/ssr/issues/14)) ([0b5f881](https://github.com/supabase/ssr/commit/0b5f881e90b7836f2b98b733aac1cc9f916286cb))
+* fix `createBrowserClient` deprecation tsdoc ([#17](https://github.com/supabase/ssr/issues/17)) ([1df70ad](https://github.com/supabase/ssr/commit/1df70ad51e65caab46cbc00342dbb42f6d498c32))
+* force release ([#98](https://github.com/supabase/ssr/issues/98)) ([66710e8](https://github.com/supabase/ssr/commit/66710e82aab5106f464e6754f2e75641a951c941))
+* re-apply update CI so it runs on release as well ([#49](https://github.com/supabase/ssr/issues/49)) ([51d5a43](https://github.com/supabase/ssr/commit/51d5a43e2300f46560dc22c67c61f95a6b8d1b3b))
+* remove optional dependencies ([#41](https://github.com/supabase/ssr/issues/41)) ([a48fe6f](https://github.com/supabase/ssr/commit/a48fe6fd9754786d0ec673ff1418b833a8cfbc70))
+* remove usage of internal type params ([#123](https://github.com/supabase/ssr/issues/123)) ([8f3e89e](https://github.com/supabase/ssr/commit/8f3e89ed29d0c9622b4d9d1c84b4d586c4c5a9ce))
+* revert "update CI so it runs on release as well" ([#44](https://github.com/supabase/ssr/issues/44)) ([9d0e859](https://github.com/supabase/ssr/commit/9d0e859cb18b7669f452bc955c6d1c4897873f93))
+* **revert:** "feat: improve cookie chunk handling via base64url+length encoding ([#90](https://github.com/supabase/ssr/issues/90))" ([#100](https://github.com/supabase/ssr/issues/100)) ([2ea8e23](https://github.com/supabase/ssr/commit/2ea8e23525f7e36e88bca3f9ae1fbce892c683e4))
+* set `max-age` default cookie option to 400 days ([#54](https://github.com/supabase/ssr/issues/54)) ([f4ed2e0](https://github.com/supabase/ssr/commit/f4ed2e0a29445781857c4526f84673693ca9679c))
+* set cookies for password recovery event ([#32](https://github.com/supabase/ssr/issues/32)) ([7dc1837](https://github.com/supabase/ssr/commit/7dc1837dc4aba870b32792586969316df980ce07))
+* set cookies when mfa challenge is verified ([#27](https://github.com/supabase/ssr/issues/27)) ([c217f53](https://github.com/supabase/ssr/commit/c217f5392b17a80a8e30709445c239e860a107d6))
+* update conventional commits ci to use main instead of master ([#31](https://github.com/supabase/ssr/issues/31)) ([bebce89](https://github.com/supabase/ssr/commit/bebce8999d9b2ae554daa2aaffdaf37d972b7fe4))
+* update type, remove unused imports, define AuthEvent type ([#47](https://github.com/supabase/ssr/issues/47)) ([4f4a375](https://github.com/supabase/ssr/commit/4f4a375ab3df0274980718b7ad98cd4841a52cc4))
+
 ## [0.8.0](https://github.com/supabase/ssr/compare/v0.7.0...v0.8.0) (2025-11-26)
 
 
