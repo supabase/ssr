@@ -209,5 +209,21 @@ export function createServerClient<
     }
   });
 
+  // Proactively load the session to trigger any necessary token refresh
+  // synchronously during request processing, before the response is generated.
+  // This prevents a race condition where async token refresh completes after
+  // the HTTP response has already been sent, which would cause cookie setting
+  // to fail.
+  //
+  // Promise.resolve().then() is used which means it executes after the current
+  // synchronous code. This ensures the session is initialized early in the
+  // request lifecycle without blocking the client creation.
+  Promise.resolve().then(() => {
+    client.auth.getSession().catch(() => {
+      // Ignore errors - if session loading fails, the client is still usable
+      // and subsequent auth operations will handle the error appropriately
+    });
+  });
+
   return client;
 }

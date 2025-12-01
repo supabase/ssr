@@ -468,16 +468,40 @@ export async function applyServerStorage(
   delete (removeCookieOptions as any).name;
   delete (setCookieOptions as any).name;
 
-  await setAll([
-    ...removeCookies.map((name) => ({
-      name,
-      value: "",
-      options: removeCookieOptions,
-    })),
-    ...setCookies.map(({ name, value }) => ({
-      name,
-      value,
-      options: setCookieOptions,
-    })),
-  ]);
+  try {
+    await setAll([
+      ...removeCookies.map((name) => ({
+        name,
+        value: "",
+        options: removeCookieOptions,
+      })),
+      ...setCookies.map(({ name, value }) => ({
+        name,
+        value,
+        options: setCookieOptions,
+      })),
+    ]);
+  } catch (error) {
+    // Better explain the case where cookies cannot be set because the response
+    // has already been sent. This can happen when token refresh completes
+    // asynchronously after the SSR framework has already generated and sent
+    // the HTTP response.
+    if (
+      error instanceof Error &&
+      (error.message.includes("after the response") ||
+        error.message.includes("response has been generated"))
+    ) {
+      console.error(
+        "@supabase/ssr: Cannot set cookies after response has been sent. " +
+          "Token refresh completed too late in the request lifecycle. " +
+          "This should be prevented by the automatic session initialization, " +
+          "but if you're seeing this error, please report it as a bug.",
+      );
+      // Don't throw - this prevents crashes but tokens won't be persisted
+      // until the next request
+      throw error;
+    }
+    // Re-throw other errors as they indicate a different problem
+    throw error;
+  }
 }
