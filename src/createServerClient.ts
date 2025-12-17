@@ -13,6 +13,20 @@ import type {
   CookieMethodsServerDeprecated,
 } from "./types";
 import { memoryLocalStorageAdapter } from "./utils/helpers";
+import { stringFromBase64URL } from "./utils/base64url";
+
+function isServiceRoleKey(apiKey: string): boolean {
+  try {
+    const parts = apiKey.split(".");
+    if (parts.length !== 3) {
+      return false;
+    }
+    const payload = JSON.parse(stringFromBase64URL(parts[1]));
+    return payload.role === "service_role";
+  } catch {
+    return false;
+  }
+}
 
 /**
  * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
@@ -142,6 +156,8 @@ export function createServerClient<
     );
   }
 
+  const isServiceRole = isServiceRoleKey(supabaseKey);
+
   const { storage, getAll, setAll, setItems, removedItems } =
     createStorageFromOptions(
       {
@@ -169,7 +185,7 @@ export function createServerClient<
       flowType: "pkce",
       autoRefreshToken: false,
       detectSessionInUrl: false,
-      persistSession: true,
+      persistSession: !isServiceRole,
       storage,
       ...(options?.cookies &&
       "encode" in options.cookies &&
