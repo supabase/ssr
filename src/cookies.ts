@@ -494,11 +494,11 @@ export async function applyServerStorage(
       console.error(
         "@supabase/ssr: Cannot set cookies after response has been sent. " +
           "Token refresh completed too late in the request lifecycle. " +
-          "This should be prevented by the automatic session initialization, " +
-          "but if you're seeing this error, please report it as a bug.",
+          "If using sessionInitialization: 'manual', ensure you call " +
+          "await supabase.auth.initialize() early in your request handler. " +
+          "If using 'auto' mode (default) and seeing this error, please report it as a bug.",
       );
-      // Don't throw - this prevents crashes but tokens won't be persisted
-      // until the next request
+      // Re-throw to surface the error - initialization should have prevented this
       throw error;
     }
     // Re-throw other errors as they indicate a different problem

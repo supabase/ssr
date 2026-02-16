@@ -382,7 +382,7 @@ describe("createServerClient", () => {
   });
 
   describe("proactive session initialization", () => {
-    it("should automatically call getSession to prevent race conditions", async () => {
+    it("should automatically call getSession with auto mode (default)", async () => {
       let getSessionCalled = false;
 
       const supabase = createServerClient(
@@ -414,6 +414,106 @@ describe("createServerClient", () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(getSessionCalled).toBe(true);
+    });
+
+    it("should not auto-initialize with manual mode", async () => {
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "publishable-key",
+        {
+          cookies: {
+            getAll() {
+              return [];
+            },
+            setAll() {},
+          },
+          sessionInitialization: "manual",
+          global: {
+            fetch: async () => {
+              throw new Error("Should not be called in this test");
+            },
+          },
+        },
+      );
+
+      // Wait for queue to execute
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect((supabase.auth as any).isInitialized()).toBe(false);
+
+      await (supabase.auth as any).initialize();
+      expect((supabase.auth as any).isInitialized()).toBe(true);
+    });
+
+    it("should not auto-initialize when disabled", async () => {
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "publishable-key",
+        {
+          cookies: {
+            getAll() {
+              return [];
+            },
+            setAll() {},
+          },
+          sessionInitialization: false,
+          global: {
+            fetch: async () => {
+              throw new Error("Should not be called in this test");
+            },
+          },
+        },
+      );
+
+      // Wait for queue to execute
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect((supabase.auth as any).isInitialized()).toBe(false);
+    });
+
+    it("should handle multiple initialize() calls safely", async () => {
+      let callCount = 0;
+
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "publishable-key",
+        {
+          cookies: {
+            getAll() {
+              return [];
+            },
+            setAll() {},
+          },
+          sessionInitialization: "manual",
+          global: {
+            fetch: async () => {
+              throw new Error("Should not be called in this test");
+            },
+          },
+        },
+      );
+
+      // Spy on getSession to count calls
+      const originalGetSession = supabase.auth.getSession.bind(supabase.auth);
+      supabase.auth.getSession = async () => {
+        callCount++;
+        return originalGetSession();
+      };
+
+      // Call initialize multiple times in parallel
+      await Promise.all([
+        (supabase.auth as any).initialize(),
+        (supabase.auth as any).initialize(),
+        (supabase.auth as any).initialize(),
+      ]);
+
+      // Only called once despite 3 calls
+      expect(callCount).toBe(1);
+      expect((supabase.auth as any).isInitialized()).toBe(true);
+
+      // Subsequent calls should be no-ops
+      await (supabase.auth as any).initialize();
+      expect(callCount).toBe(1);
     });
   });
 });
