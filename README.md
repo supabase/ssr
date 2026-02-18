@@ -109,22 +109,6 @@ Call `await supabase.auth.initialize()`:
 - **For authenticated routes** where token refresh might be needed
 - **Skip for OAuth callback routes** that use `exchangeCodeForSession()` to avoid double initialization
 
-You can check initialization status:
-
-```typescript
-const isInitialized = supabase.auth.isInitialized();
-```
-
-### How It Works
-
-The `@supabase/ssr` package prevents race conditions by:
-
-1. **Setting `skipAutoInitialize: true`** on the underlying auth client to prevent automatic initialization in the constructor
-2. **Providing controlled initialization** through the `initialize()` method that you can call at the right time in your request lifecycle
-3. **Ensuring token refresh completes** before your HTTP response is sent, preventing "cookies.set() after response" errors
-
-This approach gives you full control over when session initialization occurs, which is critical in SSR environments where timing matters.
-
 ## Documentation
 
 Please refer to the [official server-side rendering guides](https://supabase.com/docs/guides/auth/server-side) for the latest best practices on using this package in your SSR framework of choice.

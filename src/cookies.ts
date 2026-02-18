@@ -482,27 +482,16 @@ export async function applyServerStorage(
       })),
     ]);
   } catch (error) {
-    // Better explain the case where cookies cannot be set because the response
-    // has already been sent. This can happen when token refresh completes
-    // asynchronously after the SSR framework has already generated and sent
-    // the HTTP response.
-    if (
-      error instanceof Error &&
-      (error.message.includes("after the response") ||
-        error.message.includes("response has been generated"))
-    ) {
-      console.error(
-        "@supabase/ssr: Cannot set cookies after response has been sent. " +
-          "Token refresh completed after the HTTP response was generated. " +
-          "Ensure you call await supabase.auth.initialize() early in your " +
-          "request handler before the response is sent. " +
-          "If you are already calling initialize() and still seeing this error, " +
-          "please report it as a bug.",
-      );
-      // Re-throw to surface the error - initialization should have prevented this
-      throw error;
-    }
-    // Re-throw other errors as they indicate a different problem
+    // Provide a helpful message when setAll throws — the most common cause is
+    // token refresh completing after the HTTP response has already been sent.
+    console.error(
+      "@supabase/ssr: Failed to set cookies. " +
+        "This is commonly caused by token refresh completing after the HTTP " +
+        "response was already generated. " +
+        "To fix this, call `await supabase.auth.initialize()` early in your " +
+        "request handler before any response is generated, and ensure you are " +
+        "awaiting it.",
+    );
     throw error;
   }
 }

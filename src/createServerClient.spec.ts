@@ -426,12 +426,8 @@ describe("createServerClient", () => {
         },
       );
 
-      // Should not be initialized by default
-      expect((supabase.auth as any).isInitialized()).toBe(false);
-
       // User explicitly calls initialize
       await (supabase.auth as any).initialize();
-      expect((supabase.auth as any).isInitialized()).toBe(true);
     });
 
     it("should handle multiple initialize() calls safely", async () => {
@@ -463,12 +459,8 @@ describe("createServerClient", () => {
         (supabase.auth as any).initialize(),
       ]);
 
-      // All calls should resolve and leave the client initialized
-      expect((supabase.auth as any).isInitialized()).toBe(true);
-
       // Subsequent calls should be idempotent
       await (supabase.auth as any).initialize();
-      expect((supabase.auth as any).isInitialized()).toBe(true);
 
       // At most one network call regardless of how many initialize() calls ran
       expect(fetchCallCount).toBeLessThanOrEqual(1);

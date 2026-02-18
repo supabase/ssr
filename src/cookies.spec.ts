@@ -1070,7 +1070,7 @@ describe("applyServerStorage", () => {
     ]);
   });
 
-  it("should log helpful error when setAll throws after response is sent", async () => {
+  it("should log helpful error when setAll throws", async () => {
     const errors: any[][] = [];
     const originalError = console.error;
     console.error = (...args: any[]) => {
@@ -1108,43 +1108,50 @@ describe("applyServerStorage", () => {
       ).rejects.toThrow("after the response has been generated");
 
       expect(errors.length).toEqual(1);
-      expect(errors[0][0]).toContain(
-        "Cannot set cookies after response has been sent",
-      );
-      expect(errors[0][0]).toContain(
-        "Token refresh completed after the HTTP response was generated",
-      );
+      expect(errors[0][0]).toContain("Failed to set cookies");
+      expect(errors[0][0]).toContain("supabase.auth.initialize()");
     } finally {
       console.error = originalError;
     }
   });
 
-  it("should re-throw errors that are not related to response already sent", async () => {
-    const { storage, getAll, setAll, setItems, removedItems } =
-      createStorageFromOptions(
-        {
-          cookieEncoding: "raw",
-          cookies: {
-            getAll: async () => [],
-            setAll: async () => {
-              // Simulate a different error
-              throw new Error("Network error or some other issue");
+  it("should log helpful error and re-throw for any setAll error", async () => {
+    const errors: any[][] = [];
+    const originalError = console.error;
+    console.error = (...args: any[]) => {
+      errors.push(args);
+    };
+
+    try {
+      const { storage, getAll, setAll, setItems, removedItems } =
+        createStorageFromOptions(
+          {
+            cookieEncoding: "raw",
+            cookies: {
+              getAll: async () => [],
+              setAll: async () => {
+                throw new Error("Network error or some other issue");
+              },
             },
           },
-        },
-        true,
-      );
+          true,
+        );
 
-    await storage.setItem("storage-key", "value");
+      await storage.setItem("storage-key", "value");
 
-    // This SHOULD throw because it's not a "response already sent" error
-    await expect(
-      applyServerStorage(
-        { getAll, setAll, setItems, removedItems },
-        {
-          cookieEncoding: "raw",
-        },
-      ),
-    ).rejects.toThrow("Network error or some other issue");
+      await expect(
+        applyServerStorage(
+          { getAll, setAll, setItems, removedItems },
+          {
+            cookieEncoding: "raw",
+          },
+        ),
+      ).rejects.toThrow("Network error or some other issue");
+
+      expect(errors.length).toEqual(1);
+      expect(errors[0][0]).toContain("Failed to set cookies");
+    } finally {
+      console.error = originalError;
+    }
   });
 });

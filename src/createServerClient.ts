@@ -221,8 +221,5 @@ export function createServerClient<
     _initialized = true;
   };
 
-  // Helper to check initialization status
-  (client.auth as any).isInitialized = () => _initialized;
-
   return client;
 }
