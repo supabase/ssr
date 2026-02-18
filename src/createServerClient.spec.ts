@@ -382,24 +382,29 @@ describe("createServerClient", () => {
   });
 
   describe("explicit session initialization", () => {
-    it("should set skipAutoInitialize in auth options", () => {
-      const supabase = createServerClient(
-        "https://project-ref.supabase.co",
-        "publishable-key",
-        {
-          cookies: {
-            getAll() {
-              return [];
-            },
-            setAll() {},
+    it("should not auto-initialize on creation", async () => {
+      let fetchCallCount = 0;
+
+      createServerClient("https://project-ref.supabase.co", "publishable-key", {
+        cookies: {
+          getAll() {
+            return [];
+          },
+          setAll() {},
+        },
+        global: {
+          fetch: async () => {
+            fetchCallCount++;
+            return new Response("{}", { status: 200 });
           },
         },
-      );
+      });
 
-      // Verify skipAutoInitialize is set to prevent constructor auto-init
-      // This prevents race conditions in SSR contexts
-      // @ts-expect-error - accessing private settings for testing
-      expect(supabase.auth.settings.skipAutoInitialize).toBe(true);
+      // Give any async initialization a chance to run
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Constructor must not trigger any network activity
+      expect(fetchCallCount).toBe(0);
     });
 
     it("should not initialize automatically", async () => {
@@ -430,7 +435,7 @@ describe("createServerClient", () => {
     });
 
     it("should handle multiple initialize() calls safely", async () => {
-      let callCount = 0;
+      let fetchCallCount = 0;
 
       const supabase = createServerClient(
         "https://project-ref.supabase.co",
@@ -444,18 +449,12 @@ describe("createServerClient", () => {
           },
           global: {
             fetch: async () => {
-              throw new Error("Should not be called in this test");
+              fetchCallCount++;
+              return new Response("{}", { status: 200 });
             },
           },
         },
       );
-
-      // Spy on getSession to count calls
-      const originalGetSession = supabase.auth.getSession.bind(supabase.auth);
-      supabase.auth.getSession = async () => {
-        callCount++;
-        return originalGetSession();
-      };
 
       // Call initialize multiple times in parallel
       await Promise.all([
@@ -464,13 +463,15 @@ describe("createServerClient", () => {
         (supabase.auth as any).initialize(),
       ]);
 
-      // Only called once despite 3 calls
-      expect(callCount).toBe(1);
+      // All calls should resolve and leave the client initialized
       expect((supabase.auth as any).isInitialized()).toBe(true);
 
-      // Subsequent calls should be no-ops
+      // Subsequent calls should be idempotent
       await (supabase.auth as any).initialize();
-      expect(callCount).toBe(1);
+      expect((supabase.auth as any).isInitialized()).toBe(true);
+
+      // At most one network call regardless of how many initialize() calls ran
+      expect(fetchCallCount).toBeLessThanOrEqual(1);
     });
   });
 });

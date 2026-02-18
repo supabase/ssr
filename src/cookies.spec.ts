@@ -1111,7 +1111,9 @@ describe("applyServerStorage", () => {
       expect(errors[0][0]).toContain(
         "Cannot set cookies after response has been sent",
       );
-      expect(errors[0][0]).toContain("Token refresh completed too late");
+      expect(errors[0][0]).toContain(
+        "Token refresh completed after the HTTP response was generated",
+      );
     } finally {
       console.error = originalError;
     }
