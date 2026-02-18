@@ -382,6 +382,26 @@ describe("createServerClient", () => {
   });
 
   describe("explicit session initialization", () => {
+    it("should set skipAutoInitialize in auth options", () => {
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "publishable-key",
+        {
+          cookies: {
+            getAll() {
+              return [];
+            },
+            setAll() {},
+          },
+        },
+      );
+
+      // Verify skipAutoInitialize is set to prevent constructor auto-init
+      // This prevents race conditions in SSR contexts
+      // @ts-expect-error - accessing private settings for testing
+      expect(supabase.auth.settings.skipAutoInitialize).toBe(true);
+    });
+
     it("should not initialize automatically", async () => {
       const supabase = createServerClient(
         "https://project-ref.supabase.co",

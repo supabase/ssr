@@ -170,6 +170,7 @@ export function createServerClient<
       autoRefreshToken: false,
       detectSessionInUrl: false,
       persistSession: true,
+      skipAutoInitialize: true,
       storage,
       ...(options?.cookies &&
       "encode" in options.cookies &&
@@ -209,29 +210,18 @@ export function createServerClient<
     }
   });
 
-  // State tracking for initialize() method
+  // Enhance auth client with SSR-specific initialization control
   let _initialized = false;
-  let _initPromise: Promise<void> | null = null;
 
-  // Add initialize() method to client.auth
+  const originalInitialize = (client.auth as any).initialize.bind(client.auth);
+
+  // Wrap initialize to track state for SSR contexts
   (client.auth as any).initialize = async () => {
-    if (_initialized) return;
-    if (_initPromise) return _initPromise;
-
-    _initPromise = client.auth
-      .getSession()
-      .then(() => {
-        _initialized = true;
-      })
-      .catch(() => {
-        // Errors are logged by auth-js, client remains usable
-        _initialized = true;
-      });
-
-    return _initPromise;
+    await originalInitialize();
+    _initialized = true;
   };
 
-  // Add isInitialized() method to client.auth
+  // Helper to check initialization status
   (client.auth as any).isInitialized = () => _initialized;
 
   return client;
