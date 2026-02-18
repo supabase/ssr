@@ -434,6 +434,80 @@ describe("createServerClient", () => {
         expect(setAllCalls).toEqual(0);
       });
 
+      it(`getSession() reads from cookies without a network call; getUser() always contacts the auth server (storage key = ${storageKey})`, async () => {
+        let fetchCalls = 0;
+
+        const supabase = createServerClient(
+          "https://project-ref.supabase.co",
+          "anon-key",
+          {
+            ...(storageKey ? { cookieOptions: { name: storageKey } } : null),
+            cookies: {
+              getAll() {
+                return [
+                  {
+                    name: storageKey ? storageKey : "sb-project-ref-auth-token",
+                    value:
+                      "base64-" +
+                      stringToBase64URL(
+                        JSON.stringify({
+                          token_type: "bearer",
+                          access_token: "<valid-access-token>",
+                          refresh_token: "<valid-refresh-token>",
+                          expires_at: Math.floor(Date.now() / 1000) + 5 * 60,
+                          expires_in: 5 * 60,
+                          user: {
+                            id: "<valid-user-id>",
+                          },
+                        }),
+                      ),
+                  },
+                ];
+              },
+              setAll() {},
+            },
+
+            global: {
+              fetch: async (a: any, b?: any) => {
+                fetchCalls += 1;
+
+                if (a.endsWith("/user") && b.method === "GET") {
+                  return new Response(
+                    JSON.stringify({ id: "<valid-user-id>" }),
+                    {
+                      status: 200,
+                      headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                      },
+                    },
+                  );
+                }
+
+                throw new Error("Unexpected fetch call");
+              },
+            },
+          },
+        );
+
+        // getSession() reads directly from the cookie — no network call
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+
+        expect(sessionError).toBeNull();
+        expect(sessionData.session).not.toBeNull();
+        expect(sessionData.session!.user.id).toEqual("<valid-user-id>");
+        expect(fetchCalls).toEqual(0);
+
+        // getUser() always contacts the auth server to verify the token
+        const { data: userData, error: userError } =
+          await supabase.auth.getUser();
+
+        expect(userError).toBeNull();
+        expect(userData.user).not.toBeNull();
+        expect(userData.user!.id).toEqual("<valid-user-id>");
+        expect(fetchCalls).toEqual(1);
+      });
+
       it(`should refresh expired session via getSession() without calling initialize() (storage key = ${storageKey})`, async () => {
         let setAllCalls = 0;
 
