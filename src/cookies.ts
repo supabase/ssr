@@ -488,7 +488,7 @@ export async function applyServerStorage(
       "@supabase/ssr: Failed to set cookies. " +
         "This is commonly caused by token refresh completing after the HTTP " +
         "response was already generated. " +
-        "To fix this, call `await supabase.auth.initialize()` early in your " +
+        "To fix this, call `await supabase.auth.getSession()` early in your " +
         "request handler before any response is generated, and ensure you are " +
         "awaiting it.",
     );

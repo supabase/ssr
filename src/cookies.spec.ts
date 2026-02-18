@@ -1109,7 +1109,7 @@ describe("applyServerStorage", () => {
 
       expect(errors.length).toEqual(1);
       expect(errors[0][0]).toContain("Failed to set cookies");
-      expect(errors[0][0]).toContain("supabase.auth.initialize()");
+      expect(errors[0][0]).toContain("supabase.auth.getSession()");
     } finally {
       console.error = originalError;
     }
