@@ -65,12 +65,3 @@ export type CookieMethodsServer = {
   getAll: GetAllCookies;
   setAll?: SetAllCookies;
 };
-
-/**
- * Controls when session initialization occurs.
- *
- * - 'auto': Proactive initialization on client creation (recommended)
- * - 'manual': User must call auth.initialize() explicitly
- * - false: No proactive initialization (for read-only or testing)
- */
-export type SessionInitializationMode = "auto" | "manual" | false;

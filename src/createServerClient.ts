@@ -11,7 +11,6 @@ import type {
   CookieOptionsWithName,
   CookieMethodsServer,
   CookieMethodsServerDeprecated,
-  SessionInitializationMode,
 } from "./types";
 import { memoryLocalStorageAdapter } from "./utils/helpers";
 
@@ -36,7 +35,6 @@ export function createServerClient<
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServerDeprecated;
     cookieEncoding?: "raw" | "base64url";
-    sessionInitialization?: SessionInitializationMode;
   },
 ): SupabaseClient<Database, SchemaName>;
 
@@ -117,16 +115,6 @@ export function createServerClient<
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServer;
     cookieEncoding?: "raw" | "base64url";
-    /**
-     * Controls automatic session initialization behavior.
-     *
-     * - 'auto' (default): Automatically initializes session on client creation
-     * - 'manual': Requires explicit call to auth.initialize()
-     * - false: Disables proactive initialization
-     *
-     * @default 'auto'
-     */
-    sessionInitialization?: SessionInitializationMode;
   },
 ): SupabaseClient<Database, SchemaName>;
 
@@ -146,7 +134,6 @@ export function createServerClient<
     cookieOptions?: CookieOptionsWithName;
     cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
     cookieEncoding?: "raw" | "base64url";
-    sessionInitialization?: SessionInitializationMode;
   },
 ): SupabaseClient<Database, SchemaName> {
   if (!supabaseUrl || !supabaseKey) {
@@ -246,25 +233,6 @@ export function createServerClient<
 
   // Add isInitialized() method to client.auth
   (client.auth as any).isInitialized = () => _initialized;
-
-  // Conditional initialization based on mode
-  const initMode = options?.sessionInitialization ?? "auto";
-
-  if (initMode === "auto") {
-    // Proactively load the session to trigger any necessary token refresh
-    // synchronously during request processing, before the response is generated.
-    // This prevents a race condition where async token refresh completes after
-    // the HTTP response has already been sent, which would cause cookie setting
-    // to fail.
-    //
-    // Promise.resolve().then() is used which means it executes after the current
-    // synchronous code. This ensures the session is initialized early in the
-    // request lifecycle without blocking the client creation.
-    Promise.resolve().then(() => {
-      (client.auth as any).initialize();
-    });
-  }
-  // If 'manual' or false, user controls initialization
 
   return client;
 }

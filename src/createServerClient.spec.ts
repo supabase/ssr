@@ -381,10 +381,8 @@ describe("createServerClient", () => {
     });
   });
 
-  describe("proactive session initialization", () => {
-    it("should automatically call getSession with auto mode (default)", async () => {
-      let getSessionCalled = false;
-
+  describe("explicit session initialization", () => {
+    it("should not initialize automatically", async () => {
       const supabase = createServerClient(
         "https://project-ref.supabase.co",
         "publishable-key",
@@ -403,72 +401,12 @@ describe("createServerClient", () => {
         },
       );
 
-      // Spy on getSession
-      const originalGetSession = supabase.auth.getSession.bind(supabase.auth);
-      supabase.auth.getSession = async () => {
-        getSessionCalled = true;
-        return originalGetSession();
-      };
-
-      // Wait for queue to execute
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      expect(getSessionCalled).toBe(true);
-    });
-
-    it("should not auto-initialize with manual mode", async () => {
-      const supabase = createServerClient(
-        "https://project-ref.supabase.co",
-        "publishable-key",
-        {
-          cookies: {
-            getAll() {
-              return [];
-            },
-            setAll() {},
-          },
-          sessionInitialization: "manual",
-          global: {
-            fetch: async () => {
-              throw new Error("Should not be called in this test");
-            },
-          },
-        },
-      );
-
-      // Wait for queue to execute
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
+      // Should not be initialized by default
       expect((supabase.auth as any).isInitialized()).toBe(false);
 
+      // User explicitly calls initialize
       await (supabase.auth as any).initialize();
       expect((supabase.auth as any).isInitialized()).toBe(true);
-    });
-
-    it("should not auto-initialize when disabled", async () => {
-      const supabase = createServerClient(
-        "https://project-ref.supabase.co",
-        "publishable-key",
-        {
-          cookies: {
-            getAll() {
-              return [];
-            },
-            setAll() {},
-          },
-          sessionInitialization: false,
-          global: {
-            fetch: async () => {
-              throw new Error("Should not be called in this test");
-            },
-          },
-        },
-      );
-
-      // Wait for queue to execute
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      expect((supabase.auth as any).isInitialized()).toBe(false);
     });
 
     it("should handle multiple initialize() calls safely", async () => {
@@ -484,7 +422,6 @@ describe("createServerClient", () => {
             },
             setAll() {},
           },
-          sessionInitialization: "manual",
           global: {
             fetch: async () => {
               throw new Error("Should not be called in this test");
