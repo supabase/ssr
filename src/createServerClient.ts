@@ -210,16 +210,5 @@ export function createServerClient<
     }
   });
 
-  // Enhance auth client with SSR-specific initialization control
-  let _initialized = false;
-
-  const originalInitialize = (client.auth as any).initialize.bind(client.auth);
-
-  // Wrap initialize to track state for SSR contexts
-  (client.auth as any).initialize = async () => {
-    await originalInitialize();
-    _initialized = true;
-  };
-
   return client;
 }
