@@ -378,6 +378,141 @@ describe("createServerClient", () => {
         expect(error).toBeNull();
         expect(user).toMatchSnapshot();
       });
+
+      it(`should return valid session via getSession() without calling initialize() (storage key = ${storageKey})`, async () => {
+        let setAllCalls = 0;
+
+        const supabase = createServerClient(
+          "https://project-ref.supabase.co",
+          "anon-key",
+          {
+            ...(storageKey ? { cookieOptions: { name: storageKey } } : null),
+            cookies: {
+              getAll() {
+                return [
+                  {
+                    name: storageKey ? storageKey : "sb-project-ref-auth-token",
+                    value:
+                      "base64-" +
+                      stringToBase64URL(
+                        JSON.stringify({
+                          token_type: "bearer",
+                          access_token: "<valid-access-token>",
+                          refresh_token: "<valid-refresh-token>",
+                          expires_at: Math.floor(Date.now() / 1000) + 5 * 60, // expires in 5 mins
+                          expires_in: 5 * 60,
+                          user: {
+                            id: "<valid-user-id>",
+                          },
+                        }),
+                      ),
+                  },
+                ];
+              },
+
+              setAll(cookiesToSet) {
+                setAllCalls += 1;
+              },
+            },
+
+            global: {
+              fetch: async (a: any, b?: any) => {
+                throw new Error("Should not be called");
+              },
+            },
+          },
+        );
+
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        expect(error).toBeNull();
+        expect(session).not.toBeNull();
+        expect(session!.user.id).toEqual("<valid-user-id>");
+        expect(setAllCalls).toEqual(0);
+      });
+
+      it(`should refresh expired session via getSession() without calling initialize() (storage key = ${storageKey})`, async () => {
+        let setAllCalls = 0;
+
+        const supabase = createServerClient(
+          "https://project-ref.supabase.co",
+          "anon-key",
+          {
+            ...(storageKey ? { cookieOptions: { name: storageKey } } : null),
+            cookies: {
+              getAll() {
+                return [
+                  {
+                    name: storageKey ? storageKey : "sb-project-ref-auth-token",
+                    value:
+                      "base64-" +
+                      stringToBase64URL(
+                        JSON.stringify({
+                          token_type: "bearer",
+                          access_token: "<access-token-to-be-refreshed>",
+                          refresh_token: "<initial-refresh-token>",
+                          expires_at: Math.floor(Date.now() / 1000),
+                          expires_in: 0,
+                          user: {
+                            id: "<user-to-be-refreshed>",
+                          },
+                        }),
+                      ),
+                  },
+                ];
+              },
+
+              setAll(cookiesToSet) {
+                setAllCalls += 1;
+              },
+            },
+
+            global: {
+              fetch: async (a: any, b?: any) => {
+                if (
+                  a.endsWith("/token?grant_type=refresh_token") &&
+                  b.method === "POST"
+                ) {
+                  return new Response(
+                    JSON.stringify({
+                      expires_in: 3600,
+                      expires_at: Math.floor(
+                        new Date("2037-01-01T00:00:00Z").getTime() / 1000.0,
+                      ),
+                      access_token: "<new-access-token>",
+                      refresh_token: "<new-refresh-token>",
+                      user: {
+                        id: "<refreshed-user-id>",
+                      },
+                    }),
+                    {
+                      status: 200,
+                      headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                      },
+                    },
+                  );
+                } else {
+                  throw new Error("Bad mock!");
+                }
+              },
+            },
+          },
+        );
+
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        expect(error).toBeNull();
+        expect(session).not.toBeNull();
+        expect(session!.access_token).toEqual("<new-access-token>");
+        expect(setAllCalls).toEqual(1);
+      });
     });
   });
 
