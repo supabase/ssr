@@ -468,30 +468,16 @@ export async function applyServerStorage(
   delete (removeCookieOptions as any).name;
   delete (setCookieOptions as any).name;
 
-  try {
-    await setAll([
-      ...removeCookies.map((name) => ({
-        name,
-        value: "",
-        options: removeCookieOptions,
-      })),
-      ...setCookies.map(({ name, value }) => ({
-        name,
-        value,
-        options: setCookieOptions,
-      })),
-    ]);
-  } catch (error) {
-    // Provide a helpful message when setAll throws — the most common cause is
-    // token refresh completing after the HTTP response has already been sent.
-    console.error(
-      "@supabase/ssr: Failed to set cookies. " +
-        "This is commonly caused by token refresh completing after the HTTP " +
-        "response was already generated. " +
-        "To fix this, call `await supabase.auth.getSession()` early in your " +
-        "request handler before any response is generated, and ensure you are " +
-        "awaiting it.",
-    );
-    throw error;
-  }
+  await setAll([
+    ...removeCookies.map((name) => ({
+      name,
+      value: "",
+      options: removeCookieOptions,
+    })),
+    ...setCookies.map(({ name, value }) => ({
+      name,
+      value,
+      options: setCookieOptions,
+    })),
+  ]);
 }

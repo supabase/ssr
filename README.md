@@ -29,24 +29,6 @@ Please refer to the [official server-side rendering guides](https://supabase.com
 
 ## Known patterns and limitations
 
-### Call `getSession()` or `getUser()` early in request handlers
-
-This client uses lazy session initialization. The session is not loaded from
-cookies until the first call to `getSession()` or `getUser()`. When a token
-refresh occurs, the new session is written back to cookies asynchronously.
-
-If a refresh completes after the HTTP response has already been committed,
-the updated session cannot be written to the response cookies and will be
-lost — causing the next request to refresh again and log the following error:
-
-```
-@supabase/ssr: Failed to set cookies. This is commonly caused by token refresh
-completing after the HTTP response was already generated.
-```
-
-**Fix:** call `await supabase.auth.getSession()` (or `getUser()`) at the top
-of your route handler or middleware, before any response logic runs.
-
 ### `getSession()` vs `getUser()`
 
 `getSession()` returns the session directly from cookies — no network call is
