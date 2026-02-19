@@ -95,6 +95,27 @@ export function createServerClient<
  * Please consult the latest Supabase guides for advice on how to avoid common
  * pitfalls depending on SSR framework.
  *
+ * **Session initialization and cookie updates.**
+ *
+ * This client uses lazy session initialization (`skipAutoInitialize: true`).
+ * The session is not loaded from cookies until the first call to
+ * `getSession()` or `getUser()`. When a token refresh occurs, the updated
+ * session is written back to cookies asynchronously via the `setAll` handler.
+ *
+ * **IMPORTANT:** Call `await supabase.auth.getSession()` (or `getUser()`)
+ * early in your request handler — before any response is generated. If a
+ * token refresh completes after the HTTP response has already been committed,
+ * the updated session cannot be written to the response cookies and will be
+ * lost, causing the next request to refresh again.
+ *
+ * **`getSession()` vs `getUser()`.**
+ *
+ * `getSession()` returns the session directly from cookies without contacting
+ * the Supabase Auth server. The user object it contains is therefore
+ * **not verified** and should not be used for authorization decisions.
+ * Use `getUser()` when you need a verified user identity — it contacts the
+ * Auth server on every call to validate the token.
+ *
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
  * @param options Various configuration options.
@@ -170,6 +191,7 @@ export function createServerClient<
       autoRefreshToken: false,
       detectSessionInUrl: false,
       persistSession: true,
+      skipAutoInitialize: true,
       storage,
       ...(options?.cookies &&
       "encode" in options.cookies &&
