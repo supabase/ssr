@@ -29,15 +29,22 @@ Please refer to the [official server-side rendering guides](https://supabase.com
 
 ## Known patterns and limitations
 
-### `getSession()` vs `getUser()`
+### `getSession()` vs `getUser()` vs `getClaims()`
 
 `getSession()` returns the session directly from cookies — no network call is
 made. The user object it contains is **not verified by the Auth server** and
 must not be used for authorization decisions; a malicious client could craft a
-cookie with a spoofed user ID.
+cookie with a spoofed user ID. **Do not use `getSession()` for authorization decisions.**
 
-`getUser()` contacts the Supabase Auth server on every call to validate the
-token and returns a verified user. Use it whenever you gate access to resources.
+`getClaims()` validates the access token either locally (using the project's
+JWKS endpoint for asymmetric keys) or by calling the Auth server, and returns
+the verified JWT claims. Use it when you need to gate access to resources but
+don't need a fresh user record from the database.
+
+`getUser()` contacts the Supabase Auth server on every call and returns the
+most up-to-date user record, including any changes made since the token was
+issued. Use it when you need fresh user data (e.g. checking current roles,
+email, or whether the session is still active server-side).
 
 ### Concurrent requests with the same expired session
 
