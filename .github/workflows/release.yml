@@ -64,7 +64,7 @@ jobs:
             fi
 
             # RC version from git describe, bump minor
-            DESCRIBE=$(git describe --tags --always)
+            DESCRIBE=$(git describe --tags --always --match 'v*' --exclude '*-rc*')
             BASE=$(echo "$DESCRIBE" | sed 's/^v//' | cut -d'-' -f1)
             MAJOR=$(echo "$BASE" | cut -d'.' -f1)
             MINOR=$(echo "$BASE" | cut -d'.' -f2)
@@ -87,3 +87,13 @@ jobs:
       - name: Publish
         if: ${{ steps.version.outputs.skip != 'true' }}
         run: npm publish --provenance --tag ${{ steps.version.outputs.tag }}
+
+      - name: Create GitHub pre-release
+        if: ${{ steps.version.outputs.tag == 'rc' }}
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            --prerelease
