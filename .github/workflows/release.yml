@@ -16,9 +16,19 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
       - uses: googleapis/release-please-action@v4
         id: release
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
 
       - uses: actions/checkout@v4
         with:
