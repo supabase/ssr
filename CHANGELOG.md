@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.9.0](https://github.com/supabase/ssr/compare/v0.8.1...v0.9.0) (2026-03-02)
+
+
+### Features
+
+* release workflow RC versioning and publish reliability ([#164](https://github.com/supabase/ssr/issues/164)) ([81e68f4](https://github.com/supabase/ssr/commit/81e68f4f30ae6e905ba92667221c4a7512b91c81))
+
 ## [0.8.1](https://github.com/supabase/ssr/compare/v0.8.0...v0.8.1) (2026-03-02)
 
 
