@@ -80,7 +80,8 @@ jobs:
             fi
 
             # Validate branch name to prevent git ref injection
-            if [[ ! "$PR_HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            if [[ ! "$PR_HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]] || \
+               [[ "$PR_HEAD_BRANCH" =~ \.\.|//|@\{|^-|/$ ]]; then
               echo "Invalid PR_HEAD_BRANCH: $PR_HEAD_BRANCH"
               exit 1
             fi
@@ -107,7 +108,7 @@ jobs:
           echo "export const VERSION = '${{ steps.version.outputs.version }}';" > src/version.ts
           npm ci
           npm run build
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version --allow-same-version
+          npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Publish
         if: ${{ steps.version.outputs.skip != 'true' }}
@@ -127,7 +128,7 @@ jobs:
           fi
           rm -f "$NPM_VIEW_STDERR"
 
-          npm publish --provenance --tag ${{ steps.version.outputs.tag }}
+          npm publish --provenance --tag "${{ steps.version.outputs.tag }}"
 
       - name: Create GitHub pre-release
         if: ${{ steps.version.outputs.tag == 'rc' }}
