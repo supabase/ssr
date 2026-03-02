@@ -44,10 +44,12 @@ jobs:
       - name: Determine version
         id: version
         env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
+          RELEASE_VERSION: ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}
+          PR_HEAD_BRANCH: ${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).headBranchName }}
         run: |
-          if [ "${{ steps.release.outputs.release_created }}" == "true" ]; then
-            VERSION="${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}"
+          if [ "$RELEASE_CREATED" == "true" ]; then
+            VERSION="$RELEASE_VERSION"
             TAG="latest"
 
             # For release branches, check if this is the latest release branch
@@ -65,16 +67,12 @@ jobs:
               exit 0
             fi
 
-            # Get next version from the release-please PR branch's package.json
-            PR_NUMBER='${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).number }}'
-
-            if [ -z "$PR_NUMBER" ]; then
+            if [ -z "$PR_HEAD_BRANCH" ]; then
               # No pending release PR — skip to avoid version conflicts
               echo "skip=true" >> $GITHUB_OUTPUT
               exit 0
             fi
 
-            PR_HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName -q .headRefName)
             git fetch origin "$PR_HEAD_BRANCH"
             NEXT_VERSION=$(git show "origin/$PR_HEAD_BRANCH:package.json" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
 
