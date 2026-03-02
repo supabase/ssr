@@ -1,5 +1,13 @@
 # @supabase/ssr
 
+## [0.8.1](https://github.com/supabase/ssr/compare/v0.8.0...v0.8.1) (2026-03-02)
+
+
+### Bug Fixes
+
+* update README session docs ([#159](https://github.com/supabase/ssr/issues/159)) ([b859905](https://github.com/supabase/ssr/commit/b859905b355e1629f9069ff4bf8837b77f4577ce))
+* use skipAutoInitialize to prevent SSR token refresh race condition ([#131](https://github.com/supabase/ssr/issues/131)) ([0b7be28](https://github.com/supabase/ssr/commit/0b7be2871f470234a5f2d18fd4b71c522696c83d))
+
 ## [0.8.0](https://github.com/supabase/ssr/compare/v0.7.0...v0.8.0) (2025-11-26)
 
 
