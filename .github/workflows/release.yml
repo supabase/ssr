@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -20,7 +24,7 @@ jobs:
     steps:
       - name: Generate GitHub App token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf
         with:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
@@ -30,11 +34,11 @@ jobs:
         with:
           token: ${{ steps.generate-token.outputs.token }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
@@ -48,6 +52,8 @@ jobs:
           RELEASE_VERSION: ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}
           PR_HEAD_BRANCH: ${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).headBranchName }}
         run: |
+          set -euo pipefail
+
           if [ "$RELEASE_CREATED" == "true" ]; then
             VERSION="$RELEASE_VERSION"
             TAG="latest"
@@ -73,12 +79,19 @@ jobs:
               exit 0
             fi
 
-            git fetch origin "$PR_HEAD_BRANCH"
-            NEXT_VERSION=$(git show "origin/$PR_HEAD_BRANCH:package.json" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
+            # Validate branch name to prevent git ref injection
+            if [[ ! "$PR_HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+              echo "Invalid PR_HEAD_BRANCH: $PR_HEAD_BRANCH"
+              exit 1
+            fi
 
-            if [ -z "$NEXT_VERSION" ]; then
-              echo "skip=true" >> $GITHUB_OUTPUT
-              exit 0
+            git fetch origin "refs/heads/$PR_HEAD_BRANCH"
+            NEXT_VERSION=$(git show "FETCH_HEAD:package.json" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
+
+            # Validate strict semver before use
+            if [[ ! "$NEXT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Invalid version in PR branch package.json: $NEXT_VERSION"
+              exit 1
             fi
 
             VERSION="${NEXT_VERSION}-rc.${{ github.run_number }}"
@@ -90,6 +103,7 @@ jobs:
       - name: Build
         if: ${{ steps.version.outputs.skip != 'true' }}
         run: |
+          set -euo pipefail
           echo "export const VERSION = '${{ steps.version.outputs.version }}';" > src/version.ts
           npm ci
           npm run build
@@ -98,6 +112,7 @@ jobs:
       - name: Publish
         if: ${{ steps.version.outputs.skip != 'true' }}
         run: |
+          set -euo pipefail
           EXISTING=$(npm view "@supabase/ssr@${{ steps.version.outputs.version }}" version 2>/dev/null || true)
           if [ -n "$EXISTING" ]; then
             echo "Version ${{ steps.version.outputs.version }} already published on npm, skipping."
@@ -111,6 +126,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
+          set -euo pipefail
           gh release create "v${{ steps.version.outputs.version }}" \
             --title "v${{ steps.version.outputs.version }}" \
             --generate-notes \
