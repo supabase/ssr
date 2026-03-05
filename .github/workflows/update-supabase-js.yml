@@ -38,8 +38,8 @@ jobs:
 
       - name: Update @supabase/supabase-js
         run: |
-          npm pkg set 'devDependencies["@supabase/supabase-js"]'="${{ inputs.version }}"
-          npm pkg set 'peerDependencies["@supabase/supabase-js"]'="^${{ inputs.version }}"
+          npm pkg set "devDependencies.@supabase/supabase-js=${{ inputs.version }}"
+          npm pkg set "peerDependencies.@supabase/supabase-js=^${{ inputs.version }}"
           npm install --package-lock-only --ignore-scripts
 
       - name: Generate token
