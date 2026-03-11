@@ -110,20 +110,10 @@ export function createServerClient<
  *
  * **CDN and reverse proxy caching.**
  *
- * When a token refresh occurs, the updated session is written to the response
- * via `Set-Cookie` headers. If your application is deployed behind a CDN or
- * reverse proxy (e.g. CloudFront, Vercel Edge, Cloudflare), you must ensure
- * that responses containing `Set-Cookie` headers are never cached.
- *
- * Set the following response header on any route where
- * authentication is handled (typically your middleware):
- *
- * ```
- * Cache-Control: private, no-store
- * ```
- *
- * Most CDNs will not cache responses with this header. Consult your CDN's
- * documentation to confirm the correct configuration.
+ * Token refreshes write `Set-Cookie` headers to the response. If your app is
+ * behind a CDN or reverse proxy (e.g. CloudFront, Vercel Edge, Cloudflare),
+ * set `Cache-Control: private, no-store` on routes that handle authentication
+ * (typically your middleware) to prevent these responses from being cached.
  *
  * **`getSession()` vs `getUser()`.**
  *
