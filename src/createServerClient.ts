@@ -108,6 +108,13 @@ export function createServerClient<
  * the updated session cannot be written to the response cookies and will be
  * lost, causing the next request to refresh again.
  *
+ * **CDN and reverse proxy caching.**
+ *
+ * Token refreshes write `Set-Cookie` headers to the response. If your app is
+ * behind a CDN or reverse proxy (e.g. CloudFront, Vercel Edge, Cloudflare),
+ * set `Cache-Control: private, no-store` on routes that handle authentication
+ * (typically your middleware) to prevent these responses from being cached.
+ *
  * **`getSession()` vs `getUser()`.**
  *
  * `getSession()` returns the session directly from cookies without contacting
