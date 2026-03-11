@@ -47,66 +47,44 @@ export function createServerClient<
  *
  * **Use in middlewares.**
  *
- * Middlewares are functions that run before any rendering logic is executed on
- * the server-side. They typically have access to request headers (cookies) and
- * can modify both the request and response headers.
+ * In most SSR frameworks you *must set up a middleware* and call this function
+ * in it. Configure the `cookies` option with `getAll` and `setAll`. The
+ * deprecated `get`, `set`, `remove` methods are not recommended — they miss
+ * important edge cases and will be removed in a future major version.
  *
- * In most SSR frameworks, to use Supabase correctly you *must set up a
- * middleware* and use this function in it.
- *
- * When using this in a middleware, the `cookie` option must be configured to
- * use both `getAll` and `setAll`. Alternatively you can use the `get`, `set`
- * and `remove` functions. The latter are deprecated **and not recommended**
- * for most use cases due to being difficult to use properly and they do not
- * cover important edge cases. In future major versions of the library, the
- * option to configure `get`, `set` and `remove` will be removed.
- *
- * **IMPORTANT:** Failing to implement `getAll` and `setAll` correctly (or the
- * deprecated `get`, `set` and `remove`) including omitting them **will cause
- * significant and difficult to debug authentication issues**. They will
- * manifest as: random logouts, early session termination, JSON parsing errors,
- * increased number of refresh token requests, or relying on garbage state.
+ * **IMPORTANT:** Failing to implement `getAll` and `setAll` correctly **will
+ * cause significant and difficult to debug authentication issues**: random
+ * logouts, early session termination, JSON parsing errors, increased refresh
+ * token requests, or relying on garbage state.
  *
  * **Use in pages, components or routes.**
  *
- * To use Supabase features server-side rendered in pages, components or routes
- * (a.k.a. actions / APIs) you must create a client with this function. Not all
- * frameworks allow the ability to set cookies or response headers when pages
- * or components are rendered. In those cases you _can omit `setAll` (or the
- * deprecated `set`, `remove`) cookie option methods_. **It is strongly
- * recommended that if the ability to set cookies and response headers is
- * present, you should configure the `setAll` (or the deprecated `set` and
- * `remove`) cookie access methods.**
+ * You must create a new client with this function for each server render. Not
+ * all frameworks allow setting cookies or response headers from pages or
+ * components — in those cases `setAll` can be omitted, but configure it if
+ * you can. **IMPORTANT:** If cookies cannot be set from pages or components,
+ * middleware must handle session updates — omitting it will cause significant
+ * and difficult to debug authentication issues.
  *
- * **IMPORTANT:** If the ability to set cookies or response headers is not
- * available **middleware or an equivalent must be used.** Failing to do this
- * will cause significant and difficult to debug authentication issues.
+ * If `setAll` is not configured, the client emits a warning when it needs to
+ * write cookies. This usually means one of:
  *
- * When `setAll` (or the deprecated `set`, `remove`) cookie methods are not
- * configured, the Supabase Client will emit a warning if it is used in a way
- * that requires setting cookies. If you see this warning, it usually means
- * that you are using the Supabase Client in a wrong way:
+ * - You forgot to configure a middleware client.
+ * - There is a bug in your middleware.
+ * - You are calling `supabase.auth.updateUser()` server-side.
  *
- * - You should have, but did not configure a middleware client.
- * - There is a bug in your middleware function.
- * - You are using features of the Supabase Client that change the User, e.g.
- *   by calling `supabase.auth.updateUser()` on the server.
- *
- * Please consult the latest Supabase guides for advice on how to avoid common
- * pitfalls depending on SSR framework.
+ * Please consult the Supabase SSR guides for your framework.
  *
  * **Session initialization and cookie updates.**
  *
- * This client uses lazy session initialization (`skipAutoInitialize: true`).
- * The session is not loaded from cookies until the first call to
- * `getSession()` or `getUser()`. When a token refresh occurs, the updated
- * session is written back to cookies asynchronously via the `setAll` handler.
+ * The session is loaded lazily — not until the first call to `getSession()`
+ * or `getUser()`. Token refreshes write the updated session back to cookies
+ * via the `setAll` handler.
  *
- * **IMPORTANT:** Call `await supabase.auth.getSession()` (or `getUser()`)
- * early in your request handler — before any response is generated. If a
- * token refresh completes after the HTTP response has already been committed,
- * the updated session cannot be written to the response cookies and will be
- * lost, causing the next request to refresh again.
+ * **IMPORTANT:** Call `getSession()` or `getUser()` early in your request
+ * handler, before the response is committed — otherwise a token refresh may
+ * not be able to write back to cookies, forcing a re-refresh on the next
+ * request.
  *
  * **CDN and reverse proxy caching.**
  *
