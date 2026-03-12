@@ -24,6 +24,31 @@ export type GetAllCookies = () =>
 
 export type SetAllCookies = (
   cookies: { name: string; value: string; options: CookieOptions }[],
+  /**
+   * Headers that must be set on the HTTP response alongside the cookies.
+   * Responses that set auth cookies must not be cached by CDNs or
+   * reverse proxies, otherwise one user's session token can be served
+   * to a different user.
+   *
+   * The library passes the following headers when auth cookies are set:
+   * - `Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0`
+   * - `Expires: 0`
+   * - `Pragma: no-cache`
+   *
+   * @example
+   * ```ts
+   * // Next.js middleware
+   * setAll(cookiesToSet, headers) {
+   *   cookiesToSet.forEach(({ name, value, options }) =>
+   *     response.cookies.set(name, value, options)
+   *   )
+   *   Object.entries(headers).forEach(([key, value]) =>
+   *     response.headers.set(key, value)
+   *   )
+   * }
+   * ```
+   */
+  headers: Record<string, string>,
 ) => Promise<void> | void;
 
 export type CookieMethodsBrowserDeprecated = {
