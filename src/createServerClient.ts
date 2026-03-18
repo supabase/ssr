@@ -42,14 +42,14 @@ export function createServerClient<
  * Creates a Supabase Client for use on the server-side of a server-side
  * rendering (SSR) framework.
  *
- * There are two categories of uses for this function: use in middlewares and
- * use in pages, components or routes.
- *
  * **Use in middlewares.**
  *
- * In most SSR frameworks you *must set up a middleware* and call this function
- * in it. Configure the `cookies` option with `getAll` and `setAll`. The
- * deprecated `get`, `set`, `remove` methods are not recommended — they miss
+ * Middlewares are functions that run before any rendering logic and can
+ * inspect and modify both the incoming request and the outgoing response. In
+ * most SSR frameworks you *must set up a middleware* and call this function
+ * in it. The `cookies` option must implement both `getAll` **and** `setAll`
+ * so that token refreshes can be written back to the response. The deprecated
+ * `get`, `set`, and `remove` methods are not recommended — they miss
  * important edge cases and will be removed in a future major version.
  *
  * **IMPORTANT:** Failing to implement `getAll` and `setAll` correctly **will
@@ -57,49 +57,33 @@ export function createServerClient<
  * logouts, early session termination, JSON parsing errors, increased refresh
  * token requests, or relying on garbage state.
  *
- * **Use in pages, components or routes.**
+ * **Use in pages, routes or components.**
  *
- * You must create a new client with this function for each server render. Not
- * all frameworks allow setting cookies or response headers from pages or
- * components — in those cases `setAll` can be omitted, but configure it if
- * you can. **IMPORTANT:** If cookies cannot be set from pages or components,
- * middleware must handle session updates — omitting it will cause significant
- * and difficult to debug authentication issues.
+ * *Always* create a new client with this function for each server render —
+ * never share a client across requests. Not all frameworks allow setting
+ * cookies or response headers from pages, routes or components — in those
+ * cases `setAll` can be omitted, but configure it if you can.
+ *
+ * **IMPORTANT:** If cookies cannot be set from pages or components,
+ * middleware *must* handle session updates — omitting it will cause
+ * significant and difficult to debug authentication issues.
  *
  * If `setAll` is not configured, the client emits a warning when it needs to
  * write cookies. This usually means one of:
  *
- * - You forgot to configure a middleware client.
+ * - A middleware client was not configured.
  * - There is a bug in your middleware.
  * - You are calling `supabase.auth.updateUser()` server-side.
  *
- * Please consult the Supabase SSR guides for your framework.
+ * Please consult the [Supabase SSR guides](https://supabase.com/docs/guides/auth/server-side)
+ * for your framework.
  *
- * **Session initialization and cookie updates.**
+ * **Session initialization.**
  *
- * The session is loaded lazily — not until the first call to `getSession()`
- * or `getUser()`. Token refreshes write the updated session back to cookies
- * via the `setAll` handler.
- *
- * **IMPORTANT:** Call `getSession()` or `getUser()` early in your request
- * handler, before the response is committed — otherwise a token refresh may
- * not be able to write back to cookies, forcing a re-refresh on the next
- * request.
- *
- * **CDN and reverse proxy caching.**
- *
- * Token refreshes write `Set-Cookie` headers to the response. If your app is
- * behind a CDN or reverse proxy (e.g. CloudFront, Vercel Edge, Cloudflare),
- * set `Cache-Control: private, no-store` on routes that handle authentication
- * (typically your middleware) to prevent these responses from being cached.
- *
- * **`getSession()` vs `getUser()`.**
- *
- * `getSession()` returns the session directly from cookies without contacting
- * the Supabase Auth server. The user object it contains is therefore
- * **not verified** and should not be used for authorization decisions.
- * Use `getUser()` when you need a verified user identity — it contacts the
- * Auth server on every call to validate the token.
+ * This client uses lazy session initialization (`skipAutoInitialize: true`).
+ * The session is not loaded until the first call to `getSession()` or
+ * `getUser()`. Token refreshes write the updated session back to cookies via
+ * the `setAll` handler.
  *
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
