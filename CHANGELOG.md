@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.10.0](https://github.com/supabase/ssr/compare/v0.9.0...v0.10.0) (2026-03-20)
+
+
+### Features
+
+* pass cache headers to setAll to prevent CDN caching of auth responses ([#176](https://github.com/supabase/ssr/issues/176)) ([14962d2](https://github.com/supabase/ssr/commit/14962d2d64483b6fbbfe828099a552029c591d54))
+
 ## [0.9.0](https://github.com/supabase/ssr/compare/v0.8.1...v0.9.0) (2026-03-02)
 
 
