@@ -88,5 +88,31 @@ export type CookieMethodsServer = {
   encode?: "user-and-tokens" | "tokens-only";
 
   getAll: GetAllCookies;
+
+  /**
+   * Called by the Supabase Client to write cookies to the response after a
+   * token refresh or auth state change.
+   *
+   * **IMPORTANT:** Call `await supabase.auth.getSession()` (or `getUser()`)
+   * early in your request handler — before any response is generated. If a
+   * token refresh completes after the HTTP response has already been committed,
+   * the updated session cannot be written here and will be lost, causing the
+   * next request to refresh again.
+   *
+   * **CDN and reverse proxy caching.**
+   *
+   * Token refreshes write `Set-Cookie` headers to the response. If your app is
+   * behind a CDN or reverse proxy (e.g. CloudFront, Vercel Edge, Cloudflare),
+   * set `Cache-Control: private, no-store` on routes that handle authentication
+   * (typically your middleware) to prevent these responses from being cached.
+   *
+   * **`getSession()` vs `getUser()`.**
+   *
+   * `getSession()` returns the session directly from cookies without contacting
+   * the Supabase Auth server. The user object it contains is therefore
+   * **not verified** and should not be used for authorization decisions.
+   * Use `getUser()` when you need a verified user identity — it contacts the
+   * Auth server on every call to validate the token.
+   */
   setAll?: SetAllCookies;
 };
