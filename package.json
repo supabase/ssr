@@ -25,6 +25,7 @@
     "SvelteKit",
     "Postgres"
   ],
+  "packageManager": "npm@11",
   "author": "Supabase, Inc.",
   "license": "MIT",
   "bugs": {
