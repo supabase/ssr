@@ -137,9 +137,9 @@ export function createBrowserClient<
         ? { storageKey: options.cookieOptions.name }
         : null),
       flowType: "pkce",
-      autoRefreshToken: isBrowser(),
-      detectSessionInUrl: isBrowser(),
-      persistSession: true,
+      autoRefreshToken: options?.auth?.autoRefreshToken ?? isBrowser(),
+      detectSessionInUrl: options?.auth?.detectSessionInUrl ?? isBrowser(),
+      persistSession: options?.auth?.persistSession ?? true,
       storage,
       ...(options?.cookies &&
       "encode" in options.cookies &&
