@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.10.1](https://github.com/supabase/ssr/compare/v0.10.0...v0.10.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* **auth:** respect user-provided auth options in createBrowserClient ([#167](https://github.com/supabase/ssr/issues/167)) ([5f04837](https://github.com/supabase/ssr/commit/5f04837780699519471bbca432f095cad7c21e81))
+
 ## [0.10.0](https://github.com/supabase/ssr/compare/v0.9.0...v0.10.0) (2026-03-30)
 
 
