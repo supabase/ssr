@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.10.2](https://github.com/supabase/ssr/compare/v0.10.1...v0.10.2) (2026-04-09)
+
+
+### Bug Fixes
+
+* **ci:** remove packageManager field ([#197](https://github.com/supabase/ssr/issues/197)) ([6bf0226](https://github.com/supabase/ssr/commit/6bf0226b31e68507daee164d75a2f4c93df73d60))
+
 ## [0.10.1](https://github.com/supabase/ssr/compare/v0.10.0...v0.10.1) (2026-04-08)
 
 
