@@ -115,7 +115,16 @@ export function createStorageFromOptions(
       getAll = async () => await cookies.getAll!();
 
       if ("setAll" in cookies) {
-        setAll = cookies.setAll!;
+        const userSetAll = cookies.setAll!;
+        if (userSetAll.length < 2) {
+          throw new Error(
+            `@supabase/ssr: The setAll cookie method must accept two parameters: (cookies, headers). ` +
+              `Your function only accepts ${userSetAll.length}. The second parameter contains cache-control ` +
+              `headers that must be forwarded to the HTTP response to prevent CDNs from caching ` +
+              `authenticated responses. See https://supabase.com/docs/guides/auth/server-side/creating-a-client for examples.`,
+          );
+        }
+        setAll = userSetAll;
       } else if (isServerClient) {
         setAll = async () => {
           console.warn(

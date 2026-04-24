@@ -226,7 +226,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               return [];
             },
 
-            setAll: async () => {
+            setAll: async (_cookies, _headers) => {
               setAllCalled = true;
             },
           },
@@ -252,7 +252,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               return [];
             },
 
-            setAll: async () => {
+            setAll: async (_cookies, _headers) => {
               setAllCalled = true;
             },
           },
@@ -280,7 +280,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               return [];
             },
 
-            setAll: async () => {},
+            setAll: async (_cookies, _headers) => {},
           },
         },
         true,
@@ -307,7 +307,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               return [];
             },
 
-            setAll: async () => {},
+            setAll: async (_cookies, _headers) => {},
           },
         },
         true,
@@ -334,7 +334,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               return [];
             },
 
-            setAll: async () => {},
+            setAll: async (_cookies, _headers) => {},
           },
         },
         true,
@@ -377,7 +377,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               ];
             },
 
-            setAll: async () => {},
+            setAll: async (_cookies, _headers) => {},
           },
         },
         true,
@@ -418,7 +418,7 @@ describe("createStorageFromOptions for createServerClient", () => {
               ];
             },
 
-            setAll: async () => {},
+            setAll: async (_cookies, _headers) => {},
           },
         },
         true,
@@ -577,7 +577,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               ];
             },
 
-            setAll: async () => {},
+            setAll: async (_cookies, _headers) => {},
           },
         },
         false,
@@ -607,7 +607,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               return [];
             },
 
-            setAll: async () => {
+            setAll: async (_cookies, _headers) => {
               setAllCalls += 1;
             },
           },
@@ -640,7 +640,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               ];
             },
 
-            setAll: async () => {
+            setAll: async (_cookies, _headers) => {
               setAllCalls += 1;
             },
           },
@@ -682,7 +682,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               ];
             },
 
-            setAll: async (setCookies) => {
+            setAll: async (setCookies, _headers) => {
               setAllCalls.push(...setCookies);
             },
           },
@@ -753,7 +753,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               ];
             },
 
-            setAll: async (setCookies) => {
+            setAll: async (setCookies, _headers) => {
               setAllCalls.push(...setCookies);
             },
           },
@@ -828,7 +828,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               ];
             },
 
-            setAll: async (setCookies) => {
+            setAll: async (setCookies, _headers) => {
               setAllCalls.push(...setCookies);
             },
           },
@@ -903,7 +903,7 @@ describe("createStorageFromOptions for createBrowserClient", () => {
               ];
             },
 
-            setAll: async (setCookies) => {
+            setAll: async (setCookies, _headers) => {
               setAllCalls.push(...setCookies);
             },
           },
@@ -941,6 +941,84 @@ describe("createStorageFromOptions for createBrowserClient", () => {
         },
       ]);
     });
+  });
+});
+
+describe("setAll arity enforcement", () => {
+  it("should throw when setAll accepts zero parameters (server)", () => {
+    expect(() => {
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: async () => {},
+          },
+        },
+        true,
+      );
+    }).toThrow(/must accept two parameters/);
+  });
+
+  it("should throw when setAll accepts one parameter (server)", () => {
+    expect(() => {
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: async (_cookies: any) => {},
+          },
+        },
+        true,
+      );
+    }).toThrow(/must accept two parameters/);
+  });
+
+  it("should throw when setAll accepts zero parameters (browser)", () => {
+    expect(() => {
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: async () => {},
+          },
+        },
+        false,
+      );
+    }).toThrow(/must accept two parameters/);
+  });
+
+  it("should not throw when setAll accepts two parameters", () => {
+    expect(() => {
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: async (_cookies: any, _headers: any) => {},
+          },
+        },
+        true,
+      );
+    }).not.toThrow();
+  });
+
+  it("should not throw for deprecated get/set/remove path", () => {
+    expect(() => {
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            get: async () => null,
+            set: async () => {},
+            remove: async () => {},
+          },
+        },
+        true,
+      );
+    }).not.toThrow();
   });
 });
 

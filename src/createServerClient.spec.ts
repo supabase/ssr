@@ -14,7 +14,7 @@ describe("createServerClient", () => {
               return [];
             },
 
-            setAll(cookiesToSet) {
+            setAll(cookiesToSet, _headers) {
               // no-op
             },
           },
@@ -28,7 +28,7 @@ describe("createServerClient", () => {
               return [];
             },
 
-            setAll(cookiesToSet) {
+            setAll(cookiesToSet, _headers) {
               // no-op
             },
           },
@@ -63,7 +63,7 @@ describe("createServerClient", () => {
                 return [];
               },
 
-              setAll(cookiesToSet) {
+              setAll(cookiesToSet, _headers) {
                 setAllCalls += 1;
                 setCookies.push(...cookiesToSet);
               },
@@ -127,7 +127,7 @@ describe("createServerClient", () => {
                 ];
               },
 
-              setAll(cookiesToSet) {
+              setAll(cookiesToSet, _headers) {
                 setAllCalls += 1;
                 setCookies.push(...cookiesToSet);
               },
@@ -221,7 +221,7 @@ describe("createServerClient", () => {
                 ];
               },
 
-              setAll(cookiesToSet) {
+              setAll(cookiesToSet, _headers) {
                 setAllCalls += 1;
                 setCookies.push(...cookiesToSet);
               },
@@ -329,7 +329,7 @@ describe("createServerClient", () => {
                 ];
               },
 
-              setAll(cookiesToSet) {
+              setAll(cookiesToSet, _headers) {
                 setAllCalls += 1;
               },
             },
@@ -410,7 +410,7 @@ describe("createServerClient", () => {
                 ];
               },
 
-              setAll(cookiesToSet) {
+              setAll(cookiesToSet, _headers) {
                 setAllCalls += 1;
               },
             },
@@ -464,7 +464,7 @@ describe("createServerClient", () => {
                   },
                 ];
               },
-              setAll() {},
+              setAll(_cookiesToSet, _headers) {},
             },
 
             global: {
@@ -539,7 +539,7 @@ describe("createServerClient", () => {
                 ];
               },
 
-              setAll(cookiesToSet) {
+              setAll(cookiesToSet, _headers) {
                 setAllCalls += 1;
               },
             },
@@ -599,7 +599,7 @@ describe("createServerClient", () => {
           getAll() {
             return [];
           },
-          setAll() {},
+          setAll(_cookiesToSet, _headers) {},
         },
         global: {
           fetch: async () => {
