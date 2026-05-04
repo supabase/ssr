@@ -52,6 +52,21 @@ export function createStorageFromOptions(
   let getAll: (keyHints: string[]) => ReturnType<GetAllCookies>;
   let setAll: SetAllCookies;
 
+  const documentCookieGetAll = () => {
+    const parsed = parse(document.cookie);
+
+    return Object.keys(parsed).map((name) => ({
+      name,
+      value: parsed[name] ?? "",
+    }));
+  };
+
+  const documentCookieSetAll: SetAllCookies = (setCookies) => {
+    setCookies.forEach(({ name, value, options }) => {
+      document.cookie = serialize(name, value, options);
+    });
+  };
+
   if (cookies) {
     if ("get" in cookies) {
       // Just get is not enough, because the client needs to see what cookies
@@ -127,6 +142,12 @@ export function createStorageFromOptions(
           "@supabase/ssr: createBrowserClient requires configuring both getAll and setAll cookie methods (deprecated: alternatively both get, set and remove can be used)",
         );
       }
+    } else if (!isServerClient && isBrowser()) {
+      // cookies object provided (e.g. just to set `encode`) but no accessors.
+      // Fall through to document.cookie defaults, same as when cookies isn't
+      // provided at all.
+      getAll = () => documentCookieGetAll();
+      setAll = documentCookieSetAll;
     } else {
       // neither get nor getAll is present on cookies, only will occur if pure JavaScript is used, but cookies is an object
       throw new Error(
@@ -135,23 +156,8 @@ export function createStorageFromOptions(
     }
   } else if (!isServerClient && isBrowser()) {
     // The environment is browser, so use the document.cookie API to implement getAll and setAll.
-
-    const noHintGetAll = () => {
-      const parsed = parse(document.cookie);
-
-      return Object.keys(parsed).map((name) => ({
-        name,
-        value: parsed[name] ?? "",
-      }));
-    };
-
-    getAll = () => noHintGetAll();
-
-    setAll = (setCookies) => {
-      setCookies.forEach(({ name, value, options }) => {
-        document.cookie = serialize(name, value, options);
-      });
-    };
+    getAll = () => documentCookieGetAll();
+    setAll = documentCookieSetAll;
   } else if (isServerClient) {
     throw new Error(
       "@supabase/ssr: createServerClient must be initialized with cookie options that specify getAll and setAll functions (deprecated, not recommended: alternatively use get, set and remove)",
