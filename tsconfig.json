@@ -12,6 +12,7 @@
     "noImplicitOverride": true,
     "module": "preserve",
     "outDir": "dist/module",
+    "rootDir": "./src",
     "sourceMap": true,
     /* AND if you're building for a library: */
     "declaration": true,
