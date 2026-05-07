@@ -1,5 +1,15 @@
 # @supabase/ssr
 
+## [0.10.3](https://github.com/supabase/ssr/compare/v0.10.2...v0.10.3) (2026-05-07)
+
+
+### Bug Fixes
+
+* allow cookies encode without getAll/setAll on browser client ([#213](https://github.com/supabase/ssr/issues/213)) ([89f3f28](https://github.com/supabase/ssr/commit/89f3f28e1df80835d0c72e505d9e5e0d3cb75141)), closes [#170](https://github.com/supabase/ssr/issues/170)
+* enable tree-shaking for browser bundles ([#216](https://github.com/supabase/ssr/issues/216)) ([f009d71](https://github.com/supabase/ssr/commit/f009d71bbf9b8b8ec1804f9489c1eeb601a91b49))
+* **tsconfig:** set explicit rootDir to silence TS6059 in consumer IDEs ([#211](https://github.com/supabase/ssr/issues/211)) ([a77ee8a](https://github.com/supabase/ssr/commit/a77ee8a476597a7b08025a6a1722f83af900ba29)), closes [#209](https://github.com/supabase/ssr/issues/209)
+* validate base64-prefixed chunked cookies decode to valid JSON ([#210](https://github.com/supabase/ssr/issues/210)) ([302cc0e](https://github.com/supabase/ssr/commit/302cc0e5ae39aad08d52bd6e428544a9228c443d))
+
 ## [0.10.2](https://github.com/supabase/ssr/compare/v0.10.1...v0.10.2) (2026-04-09)
 
 
