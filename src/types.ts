@@ -67,8 +67,20 @@ export type CookieMethodsBrowser = {
    */
   encode?: "user-and-tokens" | "tokens-only";
 
-  getAll: GetAllCookies;
-  setAll: SetAllCookies;
+  /**
+   * Required when reading cookies from a custom store. If both `getAll` and
+   * `setAll` are omitted in a browser runtime, the client falls back to
+   * reading via `document.cookie`. Tokens and PKCE code verifiers are still
+   * persisted in cookies regardless of the `encode` option, so cookie access
+   * (custom or fallback) is required for auth to work.
+   */
+  getAll?: GetAllCookies;
+  /**
+   * Required alongside `getAll` when using a custom cookie store. If both
+   * `getAll` and `setAll` are omitted in a browser runtime, the client falls
+   * back to writing via `document.cookie`.
+   */
+  setAll?: SetAllCookies;
 };
 
 export type CookieMethodsServerDeprecated = {

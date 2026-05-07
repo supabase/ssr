@@ -137,6 +137,38 @@ describe("createStorageFromOptions in browser without cookie methods", () => {
       `random-cookie=random;storage-key.0=${newChunkedValue.substring(0, MAX_CHUNK_SIZE)};storage-key.1=${newChunkedValue.substring(MAX_CHUNK_SIZE)}`,
     );
   });
+
+  it("falls back to document.cookie when cookies object only sets encode", async () => {
+    const { storage } = createStorageFromOptions(
+      {
+        cookieEncoding: "raw",
+        cookies: { encode: "tokens-only" },
+      },
+      false,
+    );
+
+    await storage.setItem("storage-key", "value");
+    expect(document.cookie).toEqual("storage-key=value");
+
+    const value = await storage.getItem("storage-key");
+    expect(value).toEqual("value");
+
+    await storage.removeItem("storage-key");
+    expect(document.cookie).toEqual("");
+  });
+
+  it("falls back to document.cookie when cookies object is empty", async () => {
+    const { storage } = createStorageFromOptions(
+      {
+        cookieEncoding: "raw",
+        cookies: {},
+      },
+      false,
+    );
+
+    await storage.setItem("storage-key", "value");
+    expect(document.cookie).toEqual("storage-key=value");
+  });
 });
 
 describe("createStorageFromOptions for createServerClient", () => {
