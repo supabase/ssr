@@ -24,6 +24,44 @@ import type {
 const BASE64_PREFIX = "base64-";
 
 /**
+ * Decodes a chunked cookie value that may carry the `base64-` prefix written
+ * by this module. When the prefix is present, the underlying payload is always
+ * JSON encoded by auth-js (`setItemAsync` runs `JSON.stringify` on every
+ * write). If the decoded value cannot be parsed as JSON, the chunks are
+ * mismatched (e.g. a partial cookie write left the browser holding a mix of
+ * old and new generations) and we treat the entry as absent so the SDK does
+ * not propagate or re-save the corrupted payload.
+ */
+function decodeChunkedCookieValue(value: string): string | null {
+  if (!value.startsWith(BASE64_PREFIX)) {
+    return value;
+  }
+
+  let decoded: string;
+
+  try {
+    decoded = stringFromBase64URL(value.substring(BASE64_PREFIX.length));
+  } catch (error) {
+    console.warn(
+      "@supabase/ssr: could not base64url-decode chunked cookie value, treating as absent. Cookie chunks may have been written partially across responses.",
+      error,
+    );
+    return null;
+  }
+
+  try {
+    JSON.parse(decoded);
+  } catch {
+    console.warn(
+      "@supabase/ssr: chunked cookie decoded to invalid JSON, treating as absent. This usually indicates that cookie chunks from different writes were combined (e.g. response committed before all Set-Cookie headers were sent).",
+    );
+    return null;
+  }
+
+  return decoded;
+}
+
+/**
  * Creates a storage client that handles cookies correctly for browser and
  * server clients with or without properly provided cookie methods.
  *
@@ -203,15 +241,7 @@ export function createStorageFromOptions(
             return null;
           }
 
-          let decoded = chunkedCookie;
-
-          if (chunkedCookie.startsWith(BASE64_PREFIX)) {
-            decoded = stringFromBase64URL(
-              chunkedCookie.substring(BASE64_PREFIX.length),
-            );
-          }
-
-          return decoded;
+          return decodeChunkedCookieValue(chunkedCookie);
         },
         setItem: async (key: string, value: string) => {
           const allCookies = await getAll([key]);
@@ -343,18 +373,11 @@ export function createStorageFromOptions(
           return null;
         }
 
-        let decoded = chunkedCookie;
-
-        if (
-          typeof chunkedCookie === "string" &&
-          chunkedCookie.startsWith(BASE64_PREFIX)
-        ) {
-          decoded = stringFromBase64URL(
-            chunkedCookie.substring(BASE64_PREFIX.length),
-          );
+        if (typeof chunkedCookie !== "string") {
+          return chunkedCookie;
         }
 
-        return decoded;
+        return decodeChunkedCookieValue(chunkedCookie);
       },
       setItem: async (key: string, value: string) => {
         // We don't have an `onAuthStateChange` event that can let us know that

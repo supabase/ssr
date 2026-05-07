@@ -1,6 +1,11 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
-import { isBrowser, DEFAULT_COOKIE_OPTIONS, MAX_CHUNK_SIZE } from "./utils";
+import {
+  isBrowser,
+  DEFAULT_COOKIE_OPTIONS,
+  MAX_CHUNK_SIZE,
+  stringToBase64URL,
+} from "./utils";
 import { CookieOptions } from "./types";
 
 import { createStorageFromOptions, applyServerStorage } from "./cookies";
@@ -1086,5 +1091,131 @@ describe("applyServerStorage", () => {
         options: { ...DEFAULT_COOKIE_OPTIONS },
       },
     ]);
+  });
+});
+
+describe("createStorageFromOptions chunked cookie corruption", () => {
+  let warnings: any[][];
+  let warnSpy: any;
+
+  beforeEach(() => {
+    warnings = [];
+    warnSpy = vi.spyOn(console, "warn").mockImplementation((...args: any[]) => {
+      warnings.push(args);
+    });
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  // Splits a single string into N roughly-equal contiguous chunks.
+  const splitInto = (value: string, parts: number): string[] => {
+    const size = Math.ceil(value.length / parts);
+    const out: string[] = [];
+    for (let i = 0; i < parts; i += 1) {
+      out.push(value.slice(i * size, (i + 1) * size));
+    }
+    return out;
+  };
+
+  it("returns null and warns when base64url-prefixed chunks decode to invalid JSON", async () => {
+    // Simulates the issue #169 scenario: combined chunks are valid base64url
+    // (stringFromBase64URL succeeds) but the decoded payload is not JSON.
+    // This is what happens when chunk .0 of a fresh session write gets
+    // concatenated with a stale chunk .1 from a previous session — the bytes
+    // remain in the base64url alphabet but no longer form valid JSON.
+    const garbage = "trailing-garbage-from-previous-session";
+    const payload = "base64-" + stringToBase64URL(garbage);
+
+    const [chunk0, chunk1] = splitInto(payload, 2);
+
+    const { storage } = createStorageFromOptions(
+      {
+        cookieEncoding: "base64url",
+        cookies: {
+          getAll: async () => [
+            { name: "storage-key.0", value: chunk0 },
+            { name: "storage-key.1", value: chunk1 },
+          ],
+          setAll: async () => {},
+        },
+      },
+      true,
+    );
+
+    const value = await storage.getItem("storage-key");
+
+    expect(value).toBeNull();
+    expect(warnings.length).toEqual(1);
+    expect(warnings[0][0]).toMatch(/invalid JSON/);
+  });
+
+  it("returns the decoded value when base64url-prefixed chunks decode to valid JSON", async () => {
+    const session = '{"access_token":"a","refresh_token":"b","expires_at":1}';
+    const payload = "base64-" + stringToBase64URL(session);
+
+    const [chunk0, chunk1] = splitInto(payload, 2);
+
+    const { storage } = createStorageFromOptions(
+      {
+        cookieEncoding: "base64url",
+        cookies: {
+          getAll: async () => [
+            { name: "storage-key.0", value: chunk0 },
+            { name: "storage-key.1", value: chunk1 },
+          ],
+          setAll: async () => {},
+        },
+      },
+      true,
+    );
+
+    const value = await storage.getItem("storage-key");
+
+    expect(value).toEqual(session);
+    expect(warnings).toEqual([]);
+  });
+
+  it("returns null and warns when the base64url payload itself is not decodable", async () => {
+    // A `!` is not a valid base64url character; stringFromBase64URL throws.
+    const { storage } = createStorageFromOptions(
+      {
+        cookieEncoding: "base64url",
+        cookies: {
+          getAll: async () => [
+            { name: "storage-key", value: "base64-not!valid!base64url" },
+          ],
+          setAll: async () => {},
+        },
+      },
+      true,
+    );
+
+    const value = await storage.getItem("storage-key");
+
+    expect(value).toBeNull();
+    expect(warnings.length).toEqual(1);
+    expect(warnings[0][0]).toMatch(/could not base64url-decode/);
+  });
+
+  it("does not validate JSON for raw (non-base64) cookies", async () => {
+    const { storage } = createStorageFromOptions(
+      {
+        cookieEncoding: "raw",
+        cookies: {
+          getAll: async () => [
+            { name: "storage-key", value: "not json at all" },
+          ],
+          setAll: async () => {},
+        },
+      },
+      true,
+    );
+
+    const value = await storage.getItem("storage-key");
+
+    expect(value).toEqual("not json at all");
+    expect(warnings).toEqual([]);
   });
 });
