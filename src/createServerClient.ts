@@ -13,6 +13,7 @@ import type {
   CookieMethodsServerDeprecated,
 } from "./types";
 import { memoryLocalStorageAdapter } from "./utils/helpers";
+import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
 
 /**
  * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
@@ -126,6 +127,8 @@ export function createServerClient<
     cookieEncoding?: "raw" | "base64url";
   },
 ): SupabaseClient<Database, SchemaName> {
+  warnIfUsingDeprecatedAuthHelpersPackage();
+
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
       `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
