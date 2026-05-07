@@ -14,6 +14,7 @@ import type {
 } from "./types";
 
 import { createStorageFromOptions } from "./cookies";
+import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
 
 let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
 
@@ -98,6 +99,8 @@ export function createBrowserClient<
     isSingleton?: boolean;
   },
 ): SupabaseClient<Database, SchemaName> {
+  warnIfUsingDeprecatedAuthHelpersPackage();
+
   // singleton client is created only if isSingleton is set to true, or if isSingleton is not defined and we detect a browser
   const shouldUseSingleton =
     options?.isSingleton === true ||
