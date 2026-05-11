@@ -27,6 +27,101 @@ If you're currently using any of these packages, please update your dependencies
 
 Please refer to the [official server-side rendering guides](https://supabase.com/docs/guides/auth/server-side) for the latest best practices on using this package in your SSR framework of choice.
 
+## React Router middleware example
+
+React Router v7 supports server middleware in Framework Mode. Enable middleware in your React Router config:
+
+```ts
+// react-router.config.ts
+import type { Config } from "@react-router/dev/config";
+
+export default {
+  future: {
+    v8_middleware: true,
+  },
+} satisfies Config;
+```
+
+Then create the Supabase server client in a root route middleware. The example below uses the `cookie` package to read cookies from the incoming request, lets `@supabase/ssr` collect refreshed auth cookies, and applies them to the `Response` returned by React Router. Install it with `npm i cookie` if your app does not already depend on it.
+
+```ts
+// app/root.tsx
+import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { parse, serialize } from "cookie";
+import { createContext } from "react-router";
+import type { Route } from "./+types/root";
+
+export const supabaseContext = createContext<SupabaseClient>();
+export const userContext = createContext<User | null>(null);
+
+export const middleware: Route.MiddlewareFunction[] = [
+  async ({ request, context }, next) => {
+    const requestCookies = parse(request.headers.get("Cookie") ?? "");
+    const responseHeaders = new Headers();
+    const setCookieHeaders: string[] = [];
+
+    const supabase = createServerClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return Object.entries(requestCookies).map(([name, value]) => ({
+              name,
+              value,
+            }));
+          },
+          setAll(cookiesToSet, headers) {
+            Object.entries(headers).forEach(([key, value]) => {
+              responseHeaders.set(key, value);
+            });
+
+            cookiesToSet.forEach(({ name, value, options }) => {
+              if (options.maxAge === 0) {
+                delete requestCookies[name];
+              } else {
+                requestCookies[name] = value;
+              }
+
+              setCookieHeaders.push(serialize(name, value, options));
+            });
+          },
+        },
+      },
+    );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    context.set(supabaseContext, supabase);
+    context.set(userContext, user);
+
+    const response = await next();
+
+    responseHeaders.forEach((value, key) => {
+      response.headers.set(key, value);
+    });
+    setCookieHeaders.forEach((value) => {
+      response.headers.append("Set-Cookie", value);
+    });
+
+    return response;
+  },
+];
+```
+
+Loaders and actions can then read the user or client from React Router context:
+
+```ts
+export async function loader({ context }: Route.LoaderArgs) {
+  const user = context.get(userContext);
+
+  return { user };
+}
+```
+
 ## Known patterns and limitations
 
 ### `getSession()` vs `getUser()` vs `getClaims()`
