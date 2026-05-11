@@ -122,7 +122,9 @@ describe("createServerClient", () => {
                     name: storageKey
                       ? `${storageKey}-code-verifier`
                       : "sb-project-ref-auth-token-code-verifier",
-                    value: "<RANDOM VALUE>",
+                    value:
+                      "base64-" +
+                      stringToBase64URL(JSON.stringify("<RANDOM VALUE>")),
                   },
                 ];
               },
