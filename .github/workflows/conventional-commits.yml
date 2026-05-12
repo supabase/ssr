@@ -30,6 +30,7 @@ jobs:
         with:
           sparse-checkout: |
             .github
+          persist-credentials: false
 
       - if: ${{ github.event_name == 'pull_request' }}
         run: |

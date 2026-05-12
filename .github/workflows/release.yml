@@ -29,7 +29,7 @@ jobs:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
-      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0
         id: release
         with:
           token: ${{ steps.generate-token.outputs.token }}
@@ -37,13 +37,15 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@739bfe42ca9233c5e6aca07c1a25a9d34aca49b0 # v6.0.7
 
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
-
-      - run: corepack enable npm && corepack prepare npm@11 --activate
 
       - name: Determine version
         id: version
@@ -106,8 +108,8 @@ jobs:
         run: |
           set -euo pipefail
           echo "export const VERSION = '${{ steps.version.outputs.version }}';" > src/version.ts
-          npm ci
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm build
           npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Publish

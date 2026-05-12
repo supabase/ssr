@@ -10,6 +10,12 @@ This package provides a framework-agnostic way to use the [Supabase JavaScript l
 
 ```bash
 npm i @supabase/ssr
+# or
+pnpm add @supabase/ssr
+# or
+yarn add @supabase/ssr
+# or
+bun add @supabase/ssr
 ```
 
 ## Deprecated Packages
