@@ -22,13 +22,10 @@ import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage
  */
 export function createServerClient<
   Database = any,
-  SchemaName extends string &
-    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
-    Database,
-    "__InternalSupabase"
-  >
-    ? "public"
-    : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
+    "public" extends keyof Omit<Database, "__InternalSupabase">
+      ? "public"
+      : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -92,13 +89,10 @@ export function createServerClient<
  */
 export function createServerClient<
   Database = any,
-  SchemaName extends string &
-    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
-    Database,
-    "__InternalSupabase"
-  >
-    ? "public"
-    : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
+    "public" extends keyof Omit<Database, "__InternalSupabase">
+      ? "public"
+      : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -111,13 +105,10 @@ export function createServerClient<
 
 export function createServerClient<
   Database = any,
-  SchemaName extends string &
-    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
-    Database,
-    "__InternalSupabase"
-  >
-    ? "public"
-    : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
+    "public" extends keyof Omit<Database, "__InternalSupabase">
+      ? "public"
+      : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,

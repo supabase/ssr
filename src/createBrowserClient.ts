@@ -37,13 +37,10 @@ let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
  */
 export function createBrowserClient<
   Database = any,
-  SchemaName extends string &
-    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
-    Database,
-    "__InternalSupabase"
-  >
-    ? "public"
-    : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
+    "public" extends keyof Omit<Database, "__InternalSupabase">
+      ? "public"
+      : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -62,13 +59,10 @@ export function createBrowserClient<
  */
 export function createBrowserClient<
   Database = any,
-  SchemaName extends string &
-    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
-    Database,
-    "__InternalSupabase"
-  >
-    ? "public"
-    : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
+    "public" extends keyof Omit<Database, "__InternalSupabase">
+      ? "public"
+      : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -82,13 +76,10 @@ export function createBrowserClient<
 
 export function createBrowserClient<
   Database = any,
-  SchemaName extends string &
-    keyof Omit<Database, "__InternalSupabase"> = "public" extends keyof Omit<
-    Database,
-    "__InternalSupabase"
-  >
-    ? "public"
-    : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
+    "public" extends keyof Omit<Database, "__InternalSupabase">
+      ? "public"
+      : string & keyof Omit<Database, "__InternalSupabase">,
 >(
   supabaseUrl: string,
   supabaseKey: string,

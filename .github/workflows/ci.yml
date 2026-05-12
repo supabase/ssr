@@ -17,21 +17,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@739bfe42ca9233c5e6aca07c1a25a9d34aca49b0 # v6.0.7
 
       - name: Set up Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 22
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Prettier
-        run: |
-          npx prettier --check .
+        run: pnpm exec prettier --check .
 
       - name: eslint
-        run: |
-          npx eslint
+        run: pnpm exec eslint
 
   build:
     name: Build and test
@@ -39,18 +43,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@739bfe42ca9233c5e6aca07c1a25a9d34aca49b0 # v6.0.7
 
       - name: Set up Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 22
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: |
-          npm run build
+        run: pnpm build
 
       - name: Test
-        run: |
-          npm run test
+        run: pnpm test
