@@ -285,12 +285,29 @@ export function createStorageFromOptions(
           delete removeCookieOptions.name;
           delete setCookieOptions.name;
 
+          // See removeItem below for the host-only also-clear rationale.
+          // Same logic applies here: when overwriting an existing session,
+          // stale chunks at a previous scope must be cleared at that scope.
+          const hostOnlyRemoveOptions = removeCookieOptions.domain
+            ? (() => {
+                const { domain: _domain, ...rest } = removeCookieOptions;
+                return rest;
+              })()
+            : null;
+
           const allToSet = [
             ...[...removeCookies].map((name) => ({
               name,
               value: "",
               options: removeCookieOptions,
             })),
+            ...(hostOnlyRemoveOptions
+              ? [...removeCookies].map((name) => ({
+                  name,
+                  value: "",
+                  options: hostOnlyRemoveOptions,
+                }))
+              : []),
             ...setCookies.map(({ name, value }) => ({
               name,
               value,
@@ -309,6 +326,10 @@ export function createStorageFromOptions(
             isChunkLike(name, key),
           );
 
+          if (removeCookies.length === 0) {
+            return;
+          }
+
           const removeCookieOptions = {
             ...DEFAULT_COOKIE_OPTIONS,
             ...options?.cookieOptions,
@@ -319,16 +340,31 @@ export function createStorageFromOptions(
           // options.cookieOptions leaks
           delete removeCookieOptions.name;
 
-          if (removeCookies.length > 0) {
-            await setAll(
-              removeCookies.map((name) => ({
+          const toSet = removeCookies.map((name) => ({
+            name,
+            value: "",
+            options: removeCookieOptions,
+          }));
+
+          // When a parent Domain is configured, also clear the host-only
+          // counterpart. Migrating host-only -> `.parent.tld` leaves the old
+          // host-only cookies behind; the browser returns both in the Cookie
+          // header and parsers may pick the stale one, resurrecting the
+          // session after signOut. A Set-Cookie clear for a scope the host
+          // doesn't own is silently ignored, so this is a no-op when there's
+          // nothing stale to clear.
+          if (removeCookieOptions.domain) {
+            const { domain: _domain, ...hostOnlyOptions } = removeCookieOptions;
+            toSet.push(
+              ...removeCookies.map((name) => ({
                 name,
                 value: "",
-                options: removeCookieOptions,
+                options: hostOnlyOptions,
               })),
-              {},
             );
           }
+
+          await setAll(toSet, {});
         },
       },
     };
@@ -498,6 +534,16 @@ export async function applyServerStorage(
   delete (removeCookieOptions as any).name;
   delete (setCookieOptions as any).name;
 
+  // See removeItem in createStorageFromOptions for the host-only also-clear
+  // rationale. Same logic on the server-side response path.
+  const hostOnlyRemoveOptions =
+    removeCookieOptions.domain && removeCookies.length > 0
+      ? (() => {
+          const { domain: _domain, ...rest } = removeCookieOptions;
+          return rest;
+        })()
+      : null;
+
   await setAll(
     [
       ...removeCookies.map((name) => ({
@@ -505,6 +551,13 @@ export async function applyServerStorage(
         value: "",
         options: removeCookieOptions,
       })),
+      ...(hostOnlyRemoveOptions
+        ? removeCookies.map((name) => ({
+            name,
+            value: "",
+            options: hostOnlyRemoveOptions,
+          }))
+        : []),
       ...setCookies.map(({ name, value }) => ({
         name,
         value,

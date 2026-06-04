@@ -1251,3 +1251,244 @@ describe("createStorageFromOptions chunked cookie corruption", () => {
     expect(warnings).toEqual([]);
   });
 });
+
+describe("host-only also-clear when cookieOptions.domain is set", () => {
+  describe("browser client removeItem", () => {
+    it("emits one Set-Cookie per chunk when no domain is configured (baseline)", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [
+              { name: "storage-key", value: "value" },
+              { name: "storage-key.0", value: "chunk-0" },
+              { name: "unrelated", value: "ignored" },
+            ],
+            setAll: async (setCookies) => {
+              setAllCalls.push(...setCookies);
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.removeItem("storage-key");
+
+      expect(setAllCalls).toEqual([
+        {
+          name: "storage-key",
+          value: "",
+          options: { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 },
+        },
+        {
+          name: "storage-key.0",
+          value: "",
+          options: { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 },
+        },
+      ]);
+    });
+
+    it("emits two Set-Cookies per chunk when domain is configured (with-domain + host-only)", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [
+              { name: "storage-key", value: "value" },
+              { name: "storage-key.0", value: "chunk-0" },
+            ],
+            setAll: async (setCookies) => {
+              setAllCalls.push(...setCookies);
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.removeItem("storage-key");
+
+      const withDomain = {
+        ...DEFAULT_COOKIE_OPTIONS,
+        domain: ".example.com",
+        maxAge: 0,
+      };
+      const hostOnly = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
+
+      expect(setAllCalls).toEqual([
+        { name: "storage-key", value: "", options: withDomain },
+        { name: "storage-key.0", value: "", options: withDomain },
+        { name: "storage-key", value: "", options: hostOnly },
+        { name: "storage-key.0", value: "", options: hostOnly },
+      ]);
+    });
+
+    it("emits no Set-Cookie when there are no chunks to clear (with or without domain)", async () => {
+      const setAllCalls: unknown[] = [];
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [{ name: "unrelated", value: "ignored" }],
+            setAll: async (setCookies) => {
+              setAllCalls.push(...setCookies);
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.removeItem("storage-key");
+
+      expect(setAllCalls).toEqual([]);
+    });
+  });
+
+  describe("browser client setItem chunk-cleanup", () => {
+    it("clears stale chunks at both scopes when domain is configured", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [
+              { name: "storage-key", value: "old-non-chunked" },
+              { name: "storage-key.4", value: "stale-chunk" },
+            ],
+            setAll: async (setCookies) => {
+              setAllCalls.push(...setCookies);
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.setItem("storage-key", "new-value");
+
+      const withDomainRemove = {
+        ...DEFAULT_COOKIE_OPTIONS,
+        domain: ".example.com",
+        maxAge: 0,
+      };
+      const hostOnlyRemove = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
+      const withDomainSet = {
+        ...DEFAULT_COOKIE_OPTIONS,
+        domain: ".example.com",
+      };
+
+      // Order: with-domain removes, then host-only removes, then the set.
+      expect(setAllCalls).toEqual([
+        { name: "storage-key.4", value: "", options: withDomainRemove },
+        { name: "storage-key.4", value: "", options: hostOnlyRemove },
+        { name: "storage-key", value: "new-value", options: withDomainSet },
+      ]);
+    });
+  });
+
+  describe("applyServerStorage", () => {
+    it("clears removed items at both scopes when domain is configured", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage, getAll, setAll, setItems, removedItems } =
+        createStorageFromOptions(
+          {
+            cookieEncoding: "raw",
+            cookieOptions: { domain: ".example.com" },
+            cookies: {
+              getAll: async () => [
+                { name: "remove-key", value: "old" },
+                { name: "remove-key.0", value: "old-chunk" },
+              ],
+              setAll: async (setCookies) => {
+                setAllCalls.push(...setCookies);
+              },
+            },
+          },
+          true,
+        );
+
+      await storage.removeItem("remove-key");
+      await applyServerStorage(
+        { getAll, setAll, setItems, removedItems },
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+        },
+      );
+
+      const withDomain = {
+        ...DEFAULT_COOKIE_OPTIONS,
+        domain: ".example.com",
+        maxAge: 0,
+      };
+      const hostOnly = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
+
+      expect(setAllCalls).toEqual([
+        { name: "remove-key", value: "", options: withDomain },
+        { name: "remove-key.0", value: "", options: withDomain },
+        { name: "remove-key", value: "", options: hostOnly },
+        { name: "remove-key.0", value: "", options: hostOnly },
+      ]);
+    });
+
+    it("does not emit host-only removes when no domain is configured (baseline)", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage, getAll, setAll, setItems, removedItems } =
+        createStorageFromOptions(
+          {
+            cookieEncoding: "raw",
+            cookies: {
+              getAll: async () => [{ name: "remove-key", value: "old" }],
+              setAll: async (setCookies) => {
+                setAllCalls.push(...setCookies);
+              },
+            },
+          },
+          true,
+        );
+
+      await storage.removeItem("remove-key");
+      await applyServerStorage(
+        { getAll, setAll, setItems, removedItems },
+        { cookieEncoding: "raw" },
+      );
+
+      expect(setAllCalls).toEqual([
+        {
+          name: "remove-key",
+          value: "",
+          options: { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 },
+        },
+      ]);
+    });
+  });
+});
