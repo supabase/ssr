@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.11.0](https://github.com/supabase/ssr/compare/v0.10.3...v0.11.0) (2026-06-05)
+
+
+### Features
+
+* **cookies:** add clearAuthCookiesAtScopes migration helper ([#240](https://github.com/supabase/ssr/issues/240)) ([4e47249](https://github.com/supabase/ssr/commit/4e472499a2e5b6b8b3dea353519eb989a26f7979))
+
 ## [0.10.3](https://github.com/supabase/ssr/compare/v0.10.2...v0.10.3) (2026-05-07)
 
 
