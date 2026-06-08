@@ -252,6 +252,28 @@ describe("createStorageFromOptions for createServerClient", () => {
   });
 
   describe("storage with getAll, setAll", () => {
+    type SetAllCall = {
+      cookies: { name: string; value: string; options: CookieOptions }[];
+      headers: Record<string, string>;
+    };
+
+    const createServerStorageWithSetAll = (
+      setAll: (
+        setCookies: SetAllCall["cookies"],
+        headers: SetAllCall["headers"],
+      ) => Promise<void> | void,
+    ) =>
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw", // to help test readability
+          cookies: {
+            getAll: async () => [],
+            setAll,
+          },
+        },
+        true,
+      );
+
     it("should not call setAll on setItem", async () => {
       let setAllCalled = false;
 
@@ -464,6 +486,87 @@ describe("createStorageFromOptions for createServerClient", () => {
       const value = await storage.getItem("storage-key");
 
       expect(value).toEqual("value");
+    });
+
+    it("deduplicates identical server setAll batches for the same setAll function", async () => {
+      const setAllCalls: SetAllCall[] = [];
+      const sharedSetAll = async (
+        setCookies: SetAllCall["cookies"],
+        headers: SetAllCall["headers"],
+      ) => {
+        setAllCalls.push({ cookies: setCookies, headers });
+      };
+
+      const first = createServerStorageWithSetAll(sharedSetAll);
+      const second = createServerStorageWithSetAll(sharedSetAll);
+
+      await first.storage.setItem("storage-key", "value");
+      await second.storage.setItem("storage-key", "value");
+
+      await applyServerStorage(first, {
+        cookieEncoding: "raw", // to help test readability
+      });
+      await applyServerStorage(second, {
+        cookieEncoding: "raw", // to help test readability
+      });
+
+      expect(setAllCalls).toEqual([
+        {
+          cookies: [
+            {
+              name: "storage-key",
+              value: "value",
+              options: { ...DEFAULT_COOKIE_OPTIONS },
+            },
+          ],
+          headers: {
+            "Cache-Control":
+              "private, no-cache, no-store, must-revalidate, max-age=0",
+            Expires: "0",
+            Pragma: "no-cache",
+          },
+        },
+      ]);
+    });
+
+    it("writes server setAll batches again when payload differs for the same setAll function", async () => {
+      const setAllCalls: SetAllCall[] = [];
+      const sharedSetAll = async (
+        setCookies: SetAllCall["cookies"],
+        headers: SetAllCall["headers"],
+      ) => {
+        setAllCalls.push({ cookies: setCookies, headers });
+      };
+
+      const first = createServerStorageWithSetAll(sharedSetAll);
+      const second = createServerStorageWithSetAll(sharedSetAll);
+
+      await first.storage.setItem("storage-key", "value");
+      await second.storage.setItem("storage-key", "new-value");
+
+      await applyServerStorage(first, {
+        cookieEncoding: "raw", // to help test readability
+      });
+      await applyServerStorage(second, {
+        cookieEncoding: "raw", // to help test readability
+      });
+
+      expect(setAllCalls.map(({ cookies }) => cookies)).toEqual([
+        [
+          {
+            name: "storage-key",
+            value: "value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+        [
+          {
+            name: "storage-key",
+            value: "new-value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+      ]);
     });
   });
 

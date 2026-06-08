@@ -23,6 +23,30 @@ import type {
 
 const BASE64_PREFIX = "base64-";
 
+const lastServerSetAllSignatures = new WeakMap<SetAllCookies, string>();
+
+function dedupeServerSetAll(setAll: SetAllCookies): SetAllCookies {
+  return async (setCookies, headers) => {
+    const signature = JSON.stringify([setCookies, headers]);
+
+    if (lastServerSetAllSignatures.get(setAll) === signature) {
+      return;
+    }
+
+    lastServerSetAllSignatures.set(setAll, signature);
+
+    try {
+      await setAll(setCookies, headers);
+    } catch (error) {
+      if (lastServerSetAllSignatures.get(setAll) === signature) {
+        lastServerSetAllSignatures.delete(setAll);
+      }
+
+      throw error;
+    }
+  };
+}
+
 /**
  * Decodes a chunked cookie value that may carry the `base64-` prefix written
  * by this module. When the prefix is present, the underlying payload is always
@@ -168,7 +192,9 @@ export function createStorageFromOptions(
       getAll = async () => await cookies.getAll!();
 
       if ("setAll" in cookies) {
-        setAll = cookies.setAll!;
+        setAll = isServerClient
+          ? dedupeServerSetAll(cookies.setAll!)
+          : cookies.setAll!;
       } else if (isServerClient) {
         setAll = async () => {
           console.warn(
