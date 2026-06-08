@@ -41,7 +41,7 @@
     "prettier": "^3.2.5",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.10.0",
-    "vitest": "^1.6.0"
+    "vitest": "^4.1.0"
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2.108.0"
