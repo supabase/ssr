@@ -47,6 +47,14 @@ jobs:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
 
+      - name: Pin npm CLI (OIDC trusted publisher requires npm >= 11.5.1)
+        # actions/setup-node ships Node 22 with npm 10.9.x, which has no OIDC
+        # trusted-publisher code path. Without npm >= 11.5.1 the publish falls
+        # back to the .npmrc placeholder token written by setup-node and the
+        # registry returns 404. No NPM_TOKEN is configured on this repo by
+        # design — auth is OIDC only. Do not remove without restoring a token.
+        run: npm install -g npm@11.5.2
+
       - name: Determine version
         id: version
         env:
