@@ -23,30 +23,6 @@ import type {
 
 const BASE64_PREFIX = "base64-";
 
-const lastServerSetAllSignatures = new WeakMap<SetAllCookies, string>();
-
-function dedupeServerSetAll(setAll: SetAllCookies): SetAllCookies {
-  return async (setCookies, headers) => {
-    const signature = JSON.stringify([setCookies, headers]);
-
-    if (lastServerSetAllSignatures.get(setAll) === signature) {
-      return;
-    }
-
-    lastServerSetAllSignatures.set(setAll, signature);
-
-    try {
-      await setAll(setCookies, headers);
-    } catch (error) {
-      if (lastServerSetAllSignatures.get(setAll) === signature) {
-        lastServerSetAllSignatures.delete(setAll);
-      }
-
-      throw error;
-    }
-  };
-}
-
 /**
  * Decodes a chunked cookie value that may carry the `base64-` prefix written
  * by this module. When the prefix is present, the underlying payload is always
@@ -192,9 +168,7 @@ export function createStorageFromOptions(
       getAll = async () => await cookies.getAll!();
 
       if ("setAll" in cookies) {
-        setAll = isServerClient
-          ? dedupeServerSetAll(cookies.setAll!)
-          : cookies.setAll!;
+        setAll = cookies.setAll!;
       } else if (isServerClient) {
         setAll = async () => {
           console.warn(
@@ -515,6 +489,9 @@ export async function applyServerStorage(
     ...(removedItems ? (Object.keys(removedItems) as string[]) : []),
   ]);
   const cookieNames = allCookies?.map(({ name }) => name) || [];
+  const currentByName = new Map(
+    allCookies?.map(({ name, value }) => [name, value]) || [],
+  );
 
   const removeCookies: string[] = Object.keys(removedItems).flatMap(
     (itemName) => {
@@ -543,6 +520,9 @@ export async function applyServerStorage(
 
     return chunks;
   });
+  const setCookiesToWrite = setCookies.filter(
+    ({ name, value }) => currentByName.get(name) !== value,
+  );
 
   const removeCookieOptions = {
     ...DEFAULT_COOKIE_OPTIONS,
@@ -570,6 +550,10 @@ export async function applyServerStorage(
         })()
       : null;
 
+  if (removeCookies.length === 0 && setCookiesToWrite.length === 0) {
+    return;
+  }
+
   await setAll(
     [
       ...removeCookies.map((name) => ({
@@ -584,7 +568,7 @@ export async function applyServerStorage(
             options: hostOnlyRemoveOptions,
           }))
         : []),
-      ...setCookies.map(({ name, value }) => ({
+      ...setCookiesToWrite.map(({ name, value }) => ({
         name,
         value,
         options: setCookieOptions,

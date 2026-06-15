@@ -262,12 +262,13 @@ describe("createStorageFromOptions for createServerClient", () => {
         setCookies: SetAllCall["cookies"],
         headers: SetAllCall["headers"],
       ) => Promise<void> | void,
+      getAll: () => Promise<{ name: string; value: string }[]> = async () => [],
     ) =>
       createStorageFromOptions(
         {
           cookieEncoding: "raw", // to help test readability
           cookies: {
-            getAll: async () => [],
+            getAll,
             setAll,
           },
         },
@@ -488,17 +489,31 @@ describe("createStorageFromOptions for createServerClient", () => {
       expect(value).toEqual("value");
     });
 
-    it("deduplicates identical server setAll batches for the same setAll function", async () => {
+    it("skips no-op server setAll batches when getAll reflects previous writes", async () => {
+      const cookieStore: Record<string, string> = {};
       const setAllCalls: SetAllCall[] = [];
-      const sharedSetAll = async (
-        setCookies: SetAllCall["cookies"],
-        headers: SetAllCall["headers"],
-      ) => {
-        setAllCalls.push({ cookies: setCookies, headers });
-      };
+      const createStorage = () =>
+        createServerStorageWithSetAll(
+          async (setCookies, headers) => {
+            setAllCalls.push({ cookies: setCookies, headers });
 
-      const first = createServerStorageWithSetAll(sharedSetAll);
-      const second = createServerStorageWithSetAll(sharedSetAll);
+            setCookies.forEach(({ name, value }) => {
+              if (value) {
+                cookieStore[name] = value;
+              } else {
+                delete cookieStore[name];
+              }
+            });
+          },
+          async () =>
+            Object.entries(cookieStore).map(([name, value]) => ({
+              name,
+              value,
+            })),
+        );
+
+      const first = createStorage();
+      const second = createStorage();
 
       await first.storage.setItem("storage-key", "value");
       await second.storage.setItem("storage-key", "value");
@@ -529,17 +544,31 @@ describe("createStorageFromOptions for createServerClient", () => {
       ]);
     });
 
-    it("writes server setAll batches again when payload differs for the same setAll function", async () => {
+    it("writes server setAll batches when the reflected payload differs", async () => {
+      const cookieStore: Record<string, string> = {};
       const setAllCalls: SetAllCall[] = [];
-      const sharedSetAll = async (
-        setCookies: SetAllCall["cookies"],
-        headers: SetAllCall["headers"],
-      ) => {
-        setAllCalls.push({ cookies: setCookies, headers });
-      };
+      const createStorage = () =>
+        createServerStorageWithSetAll(
+          async (setCookies, headers) => {
+            setAllCalls.push({ cookies: setCookies, headers });
 
-      const first = createServerStorageWithSetAll(sharedSetAll);
-      const second = createServerStorageWithSetAll(sharedSetAll);
+            setCookies.forEach(({ name, value }) => {
+              if (value) {
+                cookieStore[name] = value;
+              } else {
+                delete cookieStore[name];
+              }
+            });
+          },
+          async () =>
+            Object.entries(cookieStore).map(([name, value]) => ({
+              name,
+              value,
+            })),
+        );
+
+      const first = createStorage();
+      const second = createStorage();
 
       await first.storage.setItem("storage-key", "value");
       await second.storage.setItem("storage-key", "new-value");
