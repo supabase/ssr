@@ -523,6 +523,9 @@ export async function applyServerStorage(
   const setCookiesToWrite = setCookies.filter(
     ({ name, value }) => currentByName.get(name) !== value,
   );
+  const removeCookiesToWrite = removeCookies.filter((name) =>
+    currentByName.has(name),
+  );
 
   const removeCookieOptions = {
     ...DEFAULT_COOKIE_OPTIONS,
@@ -543,26 +546,26 @@ export async function applyServerStorage(
   // See removeItem in createStorageFromOptions for the host-only also-clear
   // rationale. Same logic on the server-side response path.
   const hostOnlyRemoveOptions =
-    removeCookieOptions.domain && removeCookies.length > 0
+    removeCookieOptions.domain && removeCookiesToWrite.length > 0
       ? (() => {
           const { domain: _domain, ...rest } = removeCookieOptions;
           return rest;
         })()
       : null;
 
-  if (removeCookies.length === 0 && setCookiesToWrite.length === 0) {
+  if (removeCookiesToWrite.length === 0 && setCookiesToWrite.length === 0) {
     return;
   }
 
   await setAll(
     [
-      ...removeCookies.map((name) => ({
+      ...removeCookiesToWrite.map((name) => ({
         name,
         value: "",
         options: removeCookieOptions,
       })),
       ...(hostOnlyRemoveOptions
-        ? removeCookies.map((name) => ({
+        ? removeCookiesToWrite.map((name) => ({
             name,
             value: "",
             options: hostOnlyRemoveOptions,

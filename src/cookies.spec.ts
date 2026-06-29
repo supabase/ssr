@@ -489,7 +489,7 @@ describe("createStorageFromOptions for createServerClient", () => {
       expect(value).toEqual("value");
     });
 
-    it("skips no-op server setAll batches when getAll reflects previous writes", async () => {
+    it("skips no-op server setAll batches across distinct setAll closures when getAll reflects previous writes", async () => {
       const cookieStore: Record<string, string> = {};
       const setAllCalls: SetAllCall[] = [];
       const createStorage = () =>
@@ -514,6 +514,8 @@ describe("createStorageFromOptions for createServerClient", () => {
 
       const first = createStorage();
       const second = createStorage();
+
+      expect(first.setAll).not.toBe(second.setAll);
 
       await first.storage.setItem("storage-key", "value");
       await second.storage.setItem("storage-key", "value");
