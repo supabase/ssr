@@ -252,6 +252,29 @@ describe("createStorageFromOptions for createServerClient", () => {
   });
 
   describe("storage with getAll, setAll", () => {
+    type SetAllCall = {
+      cookies: { name: string; value: string; options: CookieOptions }[];
+      headers: Record<string, string>;
+    };
+
+    const createServerStorageWithSetAll = (
+      setAll: (
+        setCookies: SetAllCall["cookies"],
+        headers: SetAllCall["headers"],
+      ) => Promise<void> | void,
+      getAll: () => Promise<{ name: string; value: string }[]> = async () => [],
+    ) =>
+      createStorageFromOptions(
+        {
+          cookieEncoding: "raw", // to help test readability
+          cookies: {
+            getAll,
+            setAll,
+          },
+        },
+        true,
+      );
+
     it("should not call setAll on setItem", async () => {
       let setAllCalled = false;
 
@@ -464,6 +487,117 @@ describe("createStorageFromOptions for createServerClient", () => {
       const value = await storage.getItem("storage-key");
 
       expect(value).toEqual("value");
+    });
+
+    it("skips no-op server setAll batches across distinct setAll closures when getAll reflects previous writes", async () => {
+      const cookieStore: Record<string, string> = {};
+      const setAllCalls: SetAllCall[] = [];
+      const createStorage = () =>
+        createServerStorageWithSetAll(
+          async (setCookies, headers) => {
+            setAllCalls.push({ cookies: setCookies, headers });
+
+            setCookies.forEach(({ name, value }) => {
+              if (value) {
+                cookieStore[name] = value;
+              } else {
+                delete cookieStore[name];
+              }
+            });
+          },
+          async () =>
+            Object.entries(cookieStore).map(([name, value]) => ({
+              name,
+              value,
+            })),
+        );
+
+      const first = createStorage();
+      const second = createStorage();
+
+      expect(first.setAll).not.toBe(second.setAll);
+
+      await first.storage.setItem("storage-key", "value");
+      await second.storage.setItem("storage-key", "value");
+
+      await applyServerStorage(first, {
+        cookieEncoding: "raw", // to help test readability
+      });
+      await applyServerStorage(second, {
+        cookieEncoding: "raw", // to help test readability
+      });
+
+      expect(setAllCalls).toEqual([
+        {
+          cookies: [
+            {
+              name: "storage-key",
+              value: "value",
+              options: { ...DEFAULT_COOKIE_OPTIONS },
+            },
+          ],
+          headers: {
+            "Cache-Control":
+              "private, no-cache, no-store, must-revalidate, max-age=0",
+            Expires: "0",
+            Pragma: "no-cache",
+          },
+        },
+      ]);
+    });
+
+    it("writes server setAll batches when the reflected payload differs", async () => {
+      const cookieStore: Record<string, string> = {};
+      const setAllCalls: SetAllCall[] = [];
+      const createStorage = () =>
+        createServerStorageWithSetAll(
+          async (setCookies, headers) => {
+            setAllCalls.push({ cookies: setCookies, headers });
+
+            setCookies.forEach(({ name, value }) => {
+              if (value) {
+                cookieStore[name] = value;
+              } else {
+                delete cookieStore[name];
+              }
+            });
+          },
+          async () =>
+            Object.entries(cookieStore).map(([name, value]) => ({
+              name,
+              value,
+            })),
+        );
+
+      const first = createStorage();
+      const second = createStorage();
+
+      await first.storage.setItem("storage-key", "value");
+      await second.storage.setItem("storage-key", "new-value");
+
+      await applyServerStorage(first, {
+        cookieEncoding: "raw", // to help test readability
+      });
+      await applyServerStorage(second, {
+        cookieEncoding: "raw", // to help test readability
+      });
+
+      expect(setAllCalls.map(({ cookies }) => cookies)).toEqual([
+        [
+          {
+            name: "storage-key",
+            value: "value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+        [
+          {
+            name: "storage-key",
+            value: "new-value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+      ]);
     });
   });
 
