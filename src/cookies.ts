@@ -296,11 +296,6 @@ export function createStorageFromOptions(
             : null;
 
           const allToSet = [
-            ...[...removeCookies].map((name) => ({
-              name,
-              value: "",
-              options: removeCookieOptions,
-            })),
             ...(hostOnlyRemoveOptions
               ? [...removeCookies].map((name) => ({
                   name,
@@ -308,6 +303,11 @@ export function createStorageFromOptions(
                   options: hostOnlyRemoveOptions,
                 }))
               : []),
+            ...[...removeCookies].map((name) => ({
+              name,
+              value: "",
+              options: removeCookieOptions,
+            })),
             ...setCookies.map(({ name, value }) => ({
               name,
               value,
@@ -340,12 +340,6 @@ export function createStorageFromOptions(
           // options.cookieOptions leaks
           delete removeCookieOptions.name;
 
-          const toSet = removeCookies.map((name) => ({
-            name,
-            value: "",
-            options: removeCookieOptions,
-          }));
-
           // When a parent Domain is configured, also clear the host-only
           // counterpart. Migrating host-only -> `.parent.tld` leaves the old
           // host-only cookies behind; the browser returns both in the Cookie
@@ -353,16 +347,35 @@ export function createStorageFromOptions(
           // session after signOut. A Set-Cookie clear for a scope the host
           // doesn't own is silently ignored, so this is a no-op when there's
           // nothing stale to clear.
-          if (removeCookieOptions.domain) {
-            const { domain: _domain, ...hostOnlyOptions } = removeCookieOptions;
-            toSet.push(
-              ...removeCookies.map((name) => ({
-                name,
-                value: "",
-                options: hostOnlyOptions,
-              })),
-            );
-          }
+          //
+          // The host-only clear is emitted *before* the domain-scoped one so
+          // that cookie stores keyed by name only (e.g. Next.js
+          // ResponseCookies) keep the domain-scoped deletion -- the one that
+          // matches the cookies this library set -- instead of letting the
+          // best-effort host-only clear overwrite it, which would leave the
+          // session cookie undeleted (#256). Stores that emit a Set-Cookie
+          // per entry still receive both.
+          const hostOnlyOptions = removeCookieOptions.domain
+            ? (() => {
+                const { domain: _domain, ...rest } = removeCookieOptions;
+                return rest;
+              })()
+            : null;
+
+          const toSet = [
+            ...(hostOnlyOptions
+              ? removeCookies.map((name) => ({
+                  name,
+                  value: "",
+                  options: hostOnlyOptions,
+                }))
+              : []),
+            ...removeCookies.map((name) => ({
+              name,
+              value: "",
+              options: removeCookieOptions,
+            })),
+          ];
 
           await setAll(toSet, {});
         },
@@ -559,11 +572,6 @@ export async function applyServerStorage(
 
   await setAll(
     [
-      ...removeCookiesToWrite.map((name) => ({
-        name,
-        value: "",
-        options: removeCookieOptions,
-      })),
       ...(hostOnlyRemoveOptions
         ? removeCookiesToWrite.map((name) => ({
             name,
@@ -571,6 +579,11 @@ export async function applyServerStorage(
             options: hostOnlyRemoveOptions,
           }))
         : []),
+      ...removeCookiesToWrite.map((name) => ({
+        name,
+        value: "",
+        options: removeCookieOptions,
+      })),
       ...setCookiesToWrite.map(({ name, value }) => ({
         name,
         value,

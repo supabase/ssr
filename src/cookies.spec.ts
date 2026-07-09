@@ -1428,7 +1428,7 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       ]);
     });
 
-    it("emits two Set-Cookies per chunk when domain is configured (with-domain + host-only)", async () => {
+    it("emits two Set-Cookies per chunk when domain is configured (host-only + with-domain)", async () => {
       const setAllCalls: {
         name: string;
         value: string;
@@ -1462,10 +1462,10 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       const hostOnly = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
 
       expect(setAllCalls).toEqual([
-        { name: "storage-key", value: "", options: withDomain },
-        { name: "storage-key.0", value: "", options: withDomain },
         { name: "storage-key", value: "", options: hostOnly },
         { name: "storage-key.0", value: "", options: hostOnly },
+        { name: "storage-key", value: "", options: withDomain },
+        { name: "storage-key.0", value: "", options: withDomain },
       ]);
     });
 
@@ -1489,6 +1489,43 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       await storage.removeItem("storage-key");
 
       expect(setAllCalls).toEqual([]);
+    });
+  });
+
+  describe("name-keyed cookie store (Next.js ResponseCookies semantics)", () => {
+    // Next.js backs cookies() / NextResponse.cookies with a store keyed by
+    // cookie name only, so a later set() for the same name overwrites the
+    // earlier one when it rewrites the Set-Cookie headers. When a domain is
+    // configured, the best-effort host-only clear must not displace the
+    // domain-scoped deletion that actually matches the cookies this library
+    // set, otherwise the session cookie is never removed on signOut (#256).
+    it("keeps the domain-scoped deletion after a same-name host-only clear", async () => {
+      const store = new Map<string, CookieOptions>();
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [
+              { name: "storage-key", value: "value" },
+              { name: "storage-key.0", value: "chunk-0" },
+            ],
+            setAll: async (setCookies) => {
+              // model @edge-runtime/cookies: last write for a name wins
+              setCookies.forEach(({ name, options }) =>
+                store.set(name, options),
+              );
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.removeItem("storage-key");
+
+      expect(store.get("storage-key")?.domain).toBe(".example.com");
+      expect(store.get("storage-key.0")?.domain).toBe(".example.com");
     });
   });
 
@@ -1530,10 +1567,10 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
         domain: ".example.com",
       };
 
-      // Order: with-domain removes, then host-only removes, then the set.
+      // Order: host-only removes, then with-domain removes, then the set.
       expect(setAllCalls).toEqual([
-        { name: "storage-key.4", value: "", options: withDomainRemove },
         { name: "storage-key.4", value: "", options: hostOnlyRemove },
+        { name: "storage-key.4", value: "", options: withDomainRemove },
         { name: "storage-key", value: "new-value", options: withDomainSet },
       ]);
     });
@@ -1582,10 +1619,10 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       const hostOnly = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
 
       expect(setAllCalls).toEqual([
-        { name: "remove-key", value: "", options: withDomain },
-        { name: "remove-key.0", value: "", options: withDomain },
         { name: "remove-key", value: "", options: hostOnly },
         { name: "remove-key.0", value: "", options: hostOnly },
+        { name: "remove-key", value: "", options: withDomain },
+        { name: "remove-key.0", value: "", options: withDomain },
       ]);
     });
 
