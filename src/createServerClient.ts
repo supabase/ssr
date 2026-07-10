@@ -79,9 +79,10 @@ export function createServerClient<
  * **Session initialization.**
  *
  * This client uses lazy session initialization (`skipAutoInitialize: true`).
- * The session is not loaded until the first call to `getSession()` or
- * `getUser()`. Token refreshes write the updated session back to cookies via
- * the `setAll` handler.
+ * The session is not loaded until the first call to `getSession()`,
+ * `getUser()`, or `getClaims()` (which calls `getSession()` internally when
+ * no explicit JWT is passed). Token refreshes write the updated session back
+ * to cookies via the `setAll` handler.
  *
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
