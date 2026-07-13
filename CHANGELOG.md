@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.1](https://github.com/supabase/ssr/compare/v0.12.0...v0.12.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **cookies:** deduplicate server cookie writes ([#246](https://github.com/supabase/ssr/issues/246)) ([035eabe](https://github.com/supabase/ssr/commit/035eabe77385f36fbd744b50e08db2e21df0400b))
+
 ## [0.12.0](https://github.com/supabase/ssr/compare/v0.11.0...v0.12.0) (2026-06-09)
 
 
