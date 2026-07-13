@@ -7,6 +7,7 @@ import {
   parseCookieHeader,
   serializeCookieHeader,
 } from "./helpers";
+import type { GetAllCookies } from "../types";
 
 describe("helpers", () => {
   describe("parseCookieHeader", () => {
@@ -15,6 +16,20 @@ describe("helpers", () => {
       expect(
         parseCookieHeader(`a=b;c=${encodeURIComponent(" hello ")};e=f`),
       ).toMatchSnapshot();
+    });
+
+    it("returns string values usable directly as a getAll() method (issue #115)", () => {
+      // Every value is a string (never undefined), including valueless cookies.
+      parseCookieHeader("a=b;c=").forEach(({ value }) =>
+        expect(typeof value).toBe("string"),
+      );
+
+      // Compile-time regression guard: the return type must satisfy the
+      // CookieMethodsServer `getAll` contract, so parseCookieHeader can be
+      // returned directly, e.g.
+      // `getAll() { return parseCookieHeader(headers.get("cookie") ?? "") }`.
+      const getAll: GetAllCookies = () => parseCookieHeader("a=b");
+      expect(getAll()).toBeInstanceOf(Array);
     });
   });
 

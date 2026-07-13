@@ -22,12 +22,12 @@ export const serialize = cookie.serialize;
  */
 export function parseCookieHeader(
   header: string,
-): { name: string; value?: string }[] {
+): { name: string; value: string }[] {
   const parsed = cookie.parse(header);
 
   return Object.keys(parsed ?? {}).map((name) => ({
     name,
-    value: parsed[name],
+    value: parsed[name] ?? "",
   }));
 }
 
