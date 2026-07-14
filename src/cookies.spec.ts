@@ -1527,6 +1527,45 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       expect(store.get("storage-key")?.domain).toBe(".example.com");
       expect(store.get("storage-key.0")?.domain).toBe(".example.com");
     });
+
+    it("keeps the domain-scoped deletion through applyServerStorage", async () => {
+      // same store semantics as above, but through the server path that
+      // powers signOut() in Next.js Route Handlers and Server Actions
+      const store = new Map<string, CookieOptions>();
+
+      const { storage, getAll, setAll, setItems, removedItems } =
+        createStorageFromOptions(
+          {
+            cookieEncoding: "raw",
+            cookieOptions: { domain: ".example.com" },
+            cookies: {
+              getAll: async () => [
+                { name: "remove-key", value: "value" },
+                { name: "remove-key.0", value: "chunk-0" },
+              ],
+              setAll: async (setCookies) => {
+                // model @edge-runtime/cookies: last write for a name wins
+                setCookies.forEach(({ name, options }) =>
+                  store.set(name, options),
+                );
+              },
+            },
+          },
+          true,
+        );
+
+      await storage.removeItem("remove-key");
+      await applyServerStorage(
+        { getAll, setAll, setItems, removedItems },
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+        },
+      );
+
+      expect(store.get("remove-key")?.domain).toBe(".example.com");
+      expect(store.get("remove-key.0")?.domain).toBe(".example.com");
+    });
   });
 
   describe("browser client setItem chunk-cleanup", () => {
