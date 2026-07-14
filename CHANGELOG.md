@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.2](https://github.com/supabase/ssr/compare/v0.12.1...v0.12.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* align parseCookieHeader return type with getAll cookie method ([#239](https://github.com/supabase/ssr/issues/239)) ([e8fe1d5](https://github.com/supabase/ssr/commit/e8fe1d51a99b2e27d51f7aa1fb0fb7efac7f6581)), closes [#115](https://github.com/supabase/ssr/issues/115)
+
 ## [0.12.1](https://github.com/supabase/ssr/compare/v0.12.0...v0.12.1) (2026-07-13)
 
 
