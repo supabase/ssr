@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.3](https://github.com/supabase/ssr/compare/v0.12.2...v0.12.3) (2026-07-14)
+
+
+### Bug Fixes
+
+* **cookies:** keep domain-scoped deletion in name-keyed cookie stores ([#258](https://github.com/supabase/ssr/issues/258)) ([d3a8a98](https://github.com/supabase/ssr/commit/d3a8a982b496a68e039a99fb64ebc6bc31f91fb9)), closes [#256](https://github.com/supabase/ssr/issues/256)
+
 ## [0.12.2](https://github.com/supabase/ssr/compare/v0.12.1...v0.12.2) (2026-07-14)
 
 
