@@ -1,27 +1,34 @@
-let warned = false;
+let warned = false
 
 const DEPRECATED_PACKAGES = [
-  "@supabase/auth-helpers-nextjs",
-  "@supabase/auth-helpers-react",
-  "@supabase/auth-helpers-remix",
-  "@supabase/auth-helpers-sveltekit",
-];
+  '@supabase/auth-helpers-nextjs',
+  '@supabase/auth-helpers-react',
+  '@supabase/auth-helpers-remix',
+  '@supabase/auth-helpers-sveltekit',
+]
 
+/**
+ * Emits a one-time console warning when the running app still declares one of
+ * the deprecated `@supabase/auth-helpers-*` packages, nudging consumers to
+ * migrate to `@supabase/ssr`. No-op outside Node-like runtimes.
+ *
+ * @category Deprecated
+ */
 export function warnIfUsingDeprecatedAuthHelpersPackage(): void {
   if (warned) {
-    return;
+    return
   }
 
-  if (typeof process === "undefined" || !process.env?.npm_package_name) {
-    return;
+  if (typeof process === 'undefined' || !process.env?.npm_package_name) {
+    return
   }
 
-  const packageName = process.env.npm_package_name;
+  const packageName = process.env.npm_package_name
   if (!DEPRECATED_PACKAGES.includes(packageName)) {
-    return;
+    return
   }
 
-  warned = true;
+  warned = true
   console.warn(`
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║ ⚠️  IMPORTANT: Package Consolidation Notice                                ║
@@ -40,5 +47,5 @@ export function warnIfUsingDeprecatedAuthHelpersPackage(): void {
 ║ For more information, visit:                                              ║
 ║ https://supabase.com/docs/guides/auth/server-side                         ║
 ╚════════════════════════════════════════════════════════════════════════════╝
-    `);
+    `)
 }

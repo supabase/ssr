@@ -3,17 +3,17 @@ import {
   createClient,
   SupabaseClient,
   SupabaseClientOptions,
-} from "@supabase/supabase-js";
+} from '@supabase/supabase-js'
 
-import { VERSION } from "./version";
-import { createStorageFromOptions, applyServerStorage } from "./cookies";
+import { applyServerStorage, createStorageFromOptions } from './cookies'
 import type {
-  CookieOptionsWithName,
   CookieMethodsServer,
   CookieMethodsServerDeprecated,
-} from "./types";
-import { memoryLocalStorageAdapter } from "./utils/helpers";
-import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
+  CookieOptionsWithName,
+} from './types'
+import { memoryLocalStorageAdapter } from './utils/helpers'
+import { VERSION } from './version'
+import { warnIfUsingDeprecatedAuthHelpersPackage } from './warnDeprecatedPackage'
 
 /**
  * @deprecated Please specify `getAll` and `setAll` cookie methods instead of
@@ -22,19 +22,19 @@ import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage
  */
 export function createServerClient<
   Database = any,
-  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
-    "public" extends keyof Omit<Database, "__InternalSupabase">
-      ? "public"
-      : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, '__InternalSupabase'> =
+    'public' extends keyof Omit<Database, '__InternalSupabase'>
+      ? 'public'
+      : string & keyof Omit<Database, '__InternalSupabase'>,
 >(
   supabaseUrl: string,
   supabaseKey: string,
   options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
-  },
-): SupabaseClient<Database, SchemaName>;
+    cookieOptions?: CookieOptionsWithName
+    cookies: CookieMethodsServerDeprecated
+    cookieEncoding?: 'raw' | 'base64url'
+  }
+): SupabaseClient<Database, SchemaName>
 
 /**
  * Creates a Supabase Client for use on the server-side of a server-side
@@ -87,54 +87,55 @@ export function createServerClient<
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
  * @param options Various configuration options.
+ *
+ * @category Clients
  */
 export function createServerClient<
   Database = any,
-  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
-    "public" extends keyof Omit<Database, "__InternalSupabase">
-      ? "public"
-      : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, '__InternalSupabase'> =
+    'public' extends keyof Omit<Database, '__InternalSupabase'>
+      ? 'public'
+      : string & keyof Omit<Database, '__InternalSupabase'>,
 >(
   supabaseUrl: string,
   supabaseKey: string,
   options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServer;
-    cookieEncoding?: "raw" | "base64url";
-  },
-): SupabaseClient<Database, SchemaName>;
+    cookieOptions?: CookieOptionsWithName
+    cookies: CookieMethodsServer
+    cookieEncoding?: 'raw' | 'base64url'
+  }
+): SupabaseClient<Database, SchemaName>
 
 export function createServerClient<
   Database = any,
-  SchemaName extends string & keyof Omit<Database, "__InternalSupabase"> =
-    "public" extends keyof Omit<Database, "__InternalSupabase">
-      ? "public"
-      : string & keyof Omit<Database, "__InternalSupabase">,
+  SchemaName extends string & keyof Omit<Database, '__InternalSupabase'> =
+    'public' extends keyof Omit<Database, '__InternalSupabase'>
+      ? 'public'
+      : string & keyof Omit<Database, '__InternalSupabase'>,
 >(
   supabaseUrl: string,
   supabaseKey: string,
   options: SupabaseClientOptions<SchemaName> & {
-    cookieOptions?: CookieOptionsWithName;
-    cookies: CookieMethodsServer | CookieMethodsServerDeprecated;
-    cookieEncoding?: "raw" | "base64url";
-  },
+    cookieOptions?: CookieOptionsWithName
+    cookies: CookieMethodsServer | CookieMethodsServerDeprecated
+    cookieEncoding?: 'raw' | 'base64url'
+  }
 ): SupabaseClient<Database, SchemaName> {
-  warnIfUsingDeprecatedAuthHelpersPackage();
+  warnIfUsingDeprecatedAuthHelpersPackage()
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
-    );
+      `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`
+    )
   }
 
-  const { storage, getAll, setAll, setItems, removedItems } =
-    createStorageFromOptions(
-      {
-        ...options,
-        cookieEncoding: options?.cookieEncoding ?? "base64url",
-      },
-      true,
-    );
+  const { storage, getAll, setAll, setItems, removedItems } = createStorageFromOptions(
+    {
+      ...options,
+      cookieEncoding: options?.cookieEncoding ?? 'base64url',
+    },
+    true
+  )
 
   const client = createClient<Database, SchemaName>(supabaseUrl, supabaseKey, {
     // TODO: resolve type error
@@ -143,30 +144,27 @@ export function createServerClient<
       ...options?.global,
       headers: {
         ...options?.global?.headers,
-        "X-Client-Info": `supabase-ssr/${VERSION} createServerClient`,
+        'X-Client-Info': `supabase-ssr/${VERSION} createServerClient`,
       },
     },
     auth: {
-      ...(options?.cookieOptions?.name
-        ? { storageKey: options.cookieOptions.name }
-        : null),
+      ...(options?.cookieOptions?.name ? { storageKey: options.cookieOptions.name } : null),
       ...options?.auth,
-      flowType: "pkce",
+      flowType: 'pkce',
       autoRefreshToken: false,
       detectSessionInUrl: false,
       persistSession: true,
       skipAutoInitialize: true,
       storage,
       ...(options?.cookies &&
-      "encode" in options.cookies &&
-      options.cookies.encode === "tokens-only"
+      'encode' in options.cookies &&
+      options.cookies.encode === 'tokens-only'
         ? {
-            userStorage:
-              options?.auth?.userStorage ?? memoryLocalStorageAdapter(),
+            userStorage: options?.auth?.userStorage ?? memoryLocalStorageAdapter(),
           }
         : null),
     },
-  });
+  })
 
   client.auth.onAuthStateChange(async (event: AuthChangeEvent) => {
     // The SIGNED_IN event is fired very often, but we don't need to
@@ -174,26 +172,26 @@ export function createServerClient<
     // that need to be set -- which is if setItems / removeItems have
     // data.
     const hasStorageChanges =
-      Object.keys(setItems).length > 0 || Object.keys(removedItems).length > 0;
+      Object.keys(setItems).length > 0 || Object.keys(removedItems).length > 0
 
     if (
       hasStorageChanges &&
-      (event === "SIGNED_IN" ||
-        event === "TOKEN_REFRESHED" ||
-        event === "USER_UPDATED" ||
-        event === "PASSWORD_RECOVERY" ||
-        event === "SIGNED_OUT" ||
-        event === "MFA_CHALLENGE_VERIFIED")
+      (event === 'SIGNED_IN' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'USER_UPDATED' ||
+        event === 'PASSWORD_RECOVERY' ||
+        event === 'SIGNED_OUT' ||
+        event === 'MFA_CHALLENGE_VERIFIED')
     ) {
       await applyServerStorage(
         { getAll, setAll, setItems, removedItems },
         {
           cookieOptions: options?.cookieOptions ?? null,
-          cookieEncoding: options?.cookieEncoding ?? "base64url",
-        },
-      );
+          cookieEncoding: options?.cookieEncoding ?? 'base64url',
+        }
+      )
     }
-  });
+  })
 
-  return client;
+  return client
 }

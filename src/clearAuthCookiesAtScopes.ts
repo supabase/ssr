@@ -1,5 +1,5 @@
-import { DEFAULT_COOKIE_OPTIONS, isChunkLike } from "./utils";
-import type { CookieOptions, GetAllCookies, SetAllCookies } from "./types";
+import type { CookieOptions, GetAllCookies, SetAllCookies } from './types'
+import { DEFAULT_COOKIE_OPTIONS, isChunkLike } from './utils'
 
 /**
  * One-shot helper to clear Supabase auth cookies at one or more explicit
@@ -34,26 +34,28 @@ import type { CookieOptions, GetAllCookies, SetAllCookies } from "./types";
  *     storageKey: 'sb-<project-ref>-auth-token',
  *     scopes: [{ path: '/app' }],
  *   });
+ *
+ * @category Cookies
  */
 export async function clearAuthCookiesAtScopes(input: {
-  getAll: (keyHints: string[]) => ReturnType<GetAllCookies>;
-  setAll: SetAllCookies;
-  storageKey: string;
-  scopes: Array<Partial<CookieOptions>>;
+  getAll: (keyHints: string[]) => ReturnType<GetAllCookies>
+  setAll: SetAllCookies
+  storageKey: string
+  scopes: Array<Partial<CookieOptions>>
 }): Promise<void> {
-  const { getAll, setAll, storageKey, scopes } = input;
+  const { getAll, setAll, storageKey, scopes } = input
 
   if (scopes.length === 0) {
-    return;
+    return
   }
 
-  const allCookies = (await getAll([storageKey])) ?? [];
+  const allCookies = (await getAll([storageKey])) ?? []
   const chunkNames = allCookies
     .map(({ name }) => name)
-    .filter((name) => isChunkLike(name, storageKey));
+    .filter((name) => isChunkLike(name, storageKey))
 
   if (chunkNames.length === 0) {
-    return;
+    return
   }
 
   const toSet = scopes.flatMap((scope) => {
@@ -61,17 +63,17 @@ export async function clearAuthCookiesAtScopes(input: {
       ...DEFAULT_COOKIE_OPTIONS,
       ...scope,
       maxAge: 0,
-    };
+    }
 
     // Same NextJS cookieStore guard as createStorageFromOptions.
-    delete (cookieOptions as { name?: string }).name;
+    delete (cookieOptions as { name?: string }).name
 
     return chunkNames.map((name) => ({
       name,
-      value: "",
+      value: '',
       options: cookieOptions,
-    }));
-  });
+    }))
+  })
 
-  await setAll(toSet, {});
+  await setAll(toSet, {})
 }
