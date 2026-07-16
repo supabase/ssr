@@ -1,29 +1,32 @@
-import type { SerializeOptions } from 'cookie'
+import type { SerializeOptions } from "cookie";
 
 /** @category Types */
-export type CookieOptions = Partial<SerializeOptions>
+export type CookieOptions = Partial<SerializeOptions>;
 /** @category Types */
-export type CookieOptionsWithName = { name?: string } & CookieOptions
+export type CookieOptionsWithName = { name?: string } & CookieOptions;
 
 /** @category Types */
 export type GetCookie = (
-  name: string
-) => Promise<string | null | undefined> | string | null | undefined
+  name: string,
+) => Promise<string | null | undefined> | string | null | undefined;
 
 /** @category Types */
 export type SetCookie = (
   name: string,
   value: string,
-  options: CookieOptions
-) => Promise<void> | void
+  options: CookieOptions,
+) => Promise<void> | void;
 /** @category Types */
-export type RemoveCookie = (name: string, options: CookieOptions) => Promise<void> | void
+export type RemoveCookie = (
+  name: string,
+  options: CookieOptions,
+) => Promise<void> | void;
 
 /** @category Types */
 export type GetAllCookies = () =>
   | Promise<{ name: string; value: string }[] | null>
   | { name: string; value: string }[]
-  | null
+  | null;
 
 /** @category Types */
 export type SetAllCookies = (
@@ -52,15 +55,15 @@ export type SetAllCookies = (
    * }
    * ```
    */
-  headers: Record<string, string>
-) => Promise<void> | void
+  headers: Record<string, string>,
+) => Promise<void> | void;
 
 /** @category Types */
 export type CookieMethodsBrowserDeprecated = {
-  get: GetCookie
-  set: SetCookie
-  remove: RemoveCookie
-}
+  get: GetCookie;
+  set: SetCookie;
+  remove: RemoveCookie;
+};
 
 /** @category Types */
 export type CookieMethodsBrowser = {
@@ -71,7 +74,7 @@ export type CookieMethodsBrowser = {
    *
    * @experimental
    */
-  encode?: 'user-and-tokens' | 'tokens-only'
+  encode?: "user-and-tokens" | "tokens-only";
 
   /**
    * Required when reading cookies from a custom store. If both `getAll` and
@@ -80,21 +83,21 @@ export type CookieMethodsBrowser = {
    * persisted in cookies regardless of the `encode` option, so cookie access
    * (custom or fallback) is required for auth to work.
    */
-  getAll?: GetAllCookies
+  getAll?: GetAllCookies;
   /**
    * Required alongside `getAll` when using a custom cookie store. If both
    * `getAll` and `setAll` are omitted in a browser runtime, the client falls
    * back to writing via `document.cookie`.
    */
-  setAll?: SetAllCookies
-}
+  setAll?: SetAllCookies;
+};
 
 /** @category Types */
 export type CookieMethodsServerDeprecated = {
-  get: GetCookie
-  set?: SetCookie
-  remove?: RemoveCookie
-}
+  get: GetCookie;
+  set?: SetCookie;
+  remove?: RemoveCookie;
+};
 
 /** @category Types */
 export type CookieMethodsServer = {
@@ -105,9 +108,9 @@ export type CookieMethodsServer = {
    *
    * @experimental
    */
-  encode?: 'user-and-tokens' | 'tokens-only'
+  encode?: "user-and-tokens" | "tokens-only";
 
-  getAll: GetAllCookies
+  getAll: GetAllCookies;
 
   /**
    * Called by the Supabase Client to write cookies to the response after a
@@ -129,5 +132,5 @@ export type CookieMethodsServer = {
    * See the [official server-side rendering guides](https://supabase.com/docs/guides/auth/server-side)
    * for guidance on choosing between `getSession()`, `getUser()`, and `getClaims()`.
    */
-  setAll?: SetAllCookies
-}
+  setAll?: SetAllCookies;
+};

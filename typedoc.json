@@ -12,7 +12,14 @@
   "navigationLinks": {
     "GitHub": "https://github.com/supabase/ssr"
   },
-  "highlightLanguages": ["typescript", "javascript", "tsx", "bash", "sh", "json"],
+  "highlightLanguages": [
+    "typescript",
+    "javascript",
+    "tsx",
+    "bash",
+    "sh",
+    "json"
+  ],
   "sort": ["source-order"],
   "kindSortOrder": ["Function", "Class", "Interface", "TypeAlias", "Enum"],
   "categorizeByGroup": true
