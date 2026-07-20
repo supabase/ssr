@@ -4,16 +4,14 @@ import {
   SupabaseClientOptions,
 } from "@supabase/supabase-js";
 
-import { VERSION } from "./version";
-import { isBrowser } from "./utils";
-
+import { createStorageFromOptions } from "./cookies";
 import type {
   CookieMethodsBrowser,
   CookieMethodsBrowserDeprecated,
   CookieOptionsWithName,
 } from "./types";
-
-import { createStorageFromOptions } from "./cookies";
+import { isBrowser } from "./utils";
+import { VERSION } from "./version";
 import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
 
 let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
@@ -34,6 +32,8 @@ let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
  * @param options Various configuration options.
+ *
+ * @category Clients
  */
 export function createBrowserClient<
   Database = any,

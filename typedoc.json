@@ -1,0 +1,26 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "api-docs",
+  "json": "api-docs/spec.json",
+  "name": "@supabase/ssr",
+  "readme": "README.md",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "navigationLinks": {
+    "GitHub": "https://github.com/supabase/ssr"
+  },
+  "highlightLanguages": [
+    "typescript",
+    "javascript",
+    "tsx",
+    "bash",
+    "sh",
+    "json"
+  ],
+  "sort": ["source-order"],
+  "kindSortOrder": ["Function", "Class", "Interface", "TypeAlias", "Enum"],
+  "categorizeByGroup": true
+}

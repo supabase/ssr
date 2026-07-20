@@ -1,5 +1,5 @@
-import { DEFAULT_COOKIE_OPTIONS, isChunkLike } from "./utils";
 import type { CookieOptions, GetAllCookies, SetAllCookies } from "./types";
+import { DEFAULT_COOKIE_OPTIONS, isChunkLike } from "./utils";
 
 /**
  * One-shot helper to clear Supabase auth cookies at one or more explicit
@@ -34,6 +34,8 @@ import type { CookieOptions, GetAllCookies, SetAllCookies } from "./types";
  *     storageKey: 'sb-<project-ref>-auth-token',
  *     scopes: [{ path: '/app' }],
  *   });
+ *
+ * @category Cookies
  */
 export async function clearAuthCookiesAtScopes(input: {
   getAll: (keyHints: string[]) => ReturnType<GetAllCookies>;

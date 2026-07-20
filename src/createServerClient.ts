@@ -5,14 +5,14 @@ import {
   SupabaseClientOptions,
 } from "@supabase/supabase-js";
 
-import { VERSION } from "./version";
-import { createStorageFromOptions, applyServerStorage } from "./cookies";
+import { applyServerStorage, createStorageFromOptions } from "./cookies";
 import type {
-  CookieOptionsWithName,
   CookieMethodsServer,
   CookieMethodsServerDeprecated,
+  CookieOptionsWithName,
 } from "./types";
 import { memoryLocalStorageAdapter } from "./utils/helpers";
+import { VERSION } from "./version";
 import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
 
 /**
@@ -87,6 +87,8 @@ export function createServerClient<
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
  * @param options Various configuration options.
+ *
+ * @category Clients
  */
 export function createServerClient<
   Database = any,

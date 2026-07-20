@@ -8,6 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc && tsc -p tsconfig.main.json",
+    "docs": "typedoc",
     "test": "vitest"
   },
   "repository": {
@@ -39,6 +40,7 @@
     "@types/node": "^24.3.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
+    "typedoc": "^0.28.19",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.10.0",
     "vitest": "^4.1.0"
