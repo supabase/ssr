@@ -52,3 +52,108 @@ once per navigation and refreshes the session before the page renders, so
 subsequent requests within the same navigation see a valid token. For parallel
 requests (e.g. parallel `fetch()` calls from the client), handle `null`
 sessions gracefully and retry or re-authenticate as needed.
+
+### React Router middleware
+
+[React Router middleware](https://reactrouter.com/how-to/middleware) is stable
+and is a good place to create a server Supabase client, refresh the session once
+per request, and write updated auth cookies back onto the response.
+
+```ts
+// app/context.ts
+import { createContext } from "react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export const supabaseContext = createContext<SupabaseClient | null>(null);
+```
+
+```ts
+// app/middleware/supabase.ts
+import {
+  createServerClient,
+  parseCookieHeader,
+  serializeCookieHeader,
+} from "@supabase/ssr";
+import type { CookieOptions } from "@supabase/ssr";
+import { supabaseContext } from "~/context";
+
+type PendingCookie = {
+  name: string;
+  value: string;
+  options: CookieOptions;
+};
+
+/**
+ * Framework-mode server middleware: refresh the session before loaders/actions
+ * run, then attach any Set-Cookie / cache headers to the Response.
+ */
+export async function supabaseMiddleware(
+  {
+    request,
+    context,
+  }: {
+    request: Request;
+    context: { set: (key: unknown, value: unknown) => void };
+  },
+  next: () => Promise<Response>,
+) {
+  const pendingCookies: PendingCookie[] = [];
+  const pendingHeaders: Record<string, string> = {};
+
+  const supabase = createServerClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return parseCookieHeader(request.headers.get("Cookie") ?? "");
+        },
+        setAll(cookiesToSet, headers) {
+          pendingCookies.push(...cookiesToSet);
+          Object.assign(pendingHeaders, headers);
+        },
+      },
+    },
+  );
+
+  // Trigger lazy session init / refresh before any route code runs.
+  await supabase.auth.getClaims();
+  context.set(supabaseContext, supabase);
+
+  const response = await next();
+
+  for (const { name, value, options } of pendingCookies) {
+    response.headers.append(
+      "Set-Cookie",
+      serializeCookieHeader(name, value, options),
+    );
+  }
+  for (const [key, value] of Object.entries(pendingHeaders)) {
+    response.headers.set(key, value);
+  }
+
+  return response;
+}
+```
+
+Attach it on a parent route (Framework mode) so child loaders can read the client
+from context:
+
+```ts
+// app/routes/home.tsx
+import type { Route } from "./+types/home";
+import { supabaseMiddleware } from "~/middleware/supabase";
+import { supabaseContext } from "~/context";
+
+export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
+
+export async function loader({ context }: Route.LoaderArgs) {
+  const supabase = context.get(supabaseContext);
+  const { data } = await supabase!.auth.getClaims();
+  return { claims: data?.claims ?? null };
+}
+```
+
+See also the [React Router creating-a-client examples](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
+in the official SSR guides for `loader` / `action` patterns when you are not
+using middleware.
