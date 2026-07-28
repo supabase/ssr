@@ -97,6 +97,26 @@ exports[`createServerClient > use cases > should refresh session correctly as ty
 exports[`createServerClient > use cases > should set PKCE code verifier correctly (storage key = custom-storage-key) 1`] = `
 [
   {
+    "name": "custom-storage-key-flow-<FLOW ID>-code-verifier",
+    "options": {
+      "httpOnly": false,
+      "maxAge": 34560000,
+      "path": "/",
+      "sameSite": "lax",
+    },
+    "value": "<RANDOM VALUE>",
+  },
+  {
+    "name": "custom-storage-key-flows-code-verifier",
+    "options": {
+      "httpOnly": false,
+      "maxAge": 34560000,
+      "path": "/",
+      "sameSite": "lax",
+    },
+    "value": "<RANDOM VALUE>",
+  },
+  {
     "name": "custom-storage-key-code-verifier",
     "options": {
       "httpOnly": false,
@@ -111,6 +131,26 @@ exports[`createServerClient > use cases > should set PKCE code verifier correctl
 
 exports[`createServerClient > use cases > should set PKCE code verifier correctly (storage key = null) 1`] = `
 [
+  {
+    "name": "sb-project-ref-auth-token-flow-<FLOW ID>-code-verifier",
+    "options": {
+      "httpOnly": false,
+      "maxAge": 34560000,
+      "path": "/",
+      "sameSite": "lax",
+    },
+    "value": "<RANDOM VALUE>",
+  },
+  {
+    "name": "sb-project-ref-auth-token-flows-code-verifier",
+    "options": {
+      "httpOnly": false,
+      "maxAge": 34560000,
+      "path": "/",
+      "sameSite": "lax",
+    },
+    "value": "<RANDOM VALUE>",
+  },
   {
     "name": "sb-project-ref-auth-token-code-verifier",
     "options": {
