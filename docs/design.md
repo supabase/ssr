@@ -327,6 +327,33 @@ There are two key points to identify from this about the behavior of
 2. **Cookies are set when the storage values change. Set-Cookie headers should
    not be sent out if there is no change.** Therefore cookies are set only on
    these `onAuthStateChange` events:
+   - `SIGNED_IN` -- when a session was established, such as by exchanging a PKCE code
    - `TOKEN_REFRESHED` -- when the access token was expired
    - `USER_UPDATED` -- usually only in pattern 3 -- routes or APIs that call the `updateUser()` API
+   - `PASSWORD_RECOVERY` -- when a recovery link established a session
    - `SIGNED_OUT` when the session expired or was terminated, such as the user signing out from another device
+   - `MFA_CHALLENGE_VERIFIED` -- when a multi-factor challenge was completed
+
+#### Exception: PKCE code verifiers
+
+There is no `onAuthStateChange` event that announces a PKCE code verifier being
+written, so waiting for one would drop the verifier and break the flow. The
+server storage therefore applies the storage immediately for any key ending in
+`-code-verifier`, which covers both the fixed `<storageKey>-code-verifier` key
+and the per-flow keys auth-js uses to keep several PKCE flows in flight at once
+(`<storageKey>-flow-<flowId>-code-verifier`, plus the
+`<storageKey>-flows-code-verifier` index of pending flow ids).
+
+Removal of the fixed `<storageKey>-code-verifier` key is left buffered. On a
+successful `exchangeCodeForSession` an event follows immediately and applies the
+storage; on a failure no event fires, but that key holds a single value which
+the next flow's write overwrites, so a removal that never reaches the browser is
+not observable.
+
+The per-flow keys are removed immediately instead, because both of the paths
+that remove them can emit no event at all. auth-js bounds the number of
+concurrent flows with a ring that evicts the oldest slot when a new flow
+_starts_, and a flow that fails removes its own slot from a catch block,
+dropping the index entry too when it was the last one. Leaving those buffered
+would strand a verifier cookie in the browser with nothing referencing it, or an
+index naming a slot that is already gone.

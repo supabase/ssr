@@ -24,6 +24,36 @@ import type {
 const BASE64_PREFIX = "base64-";
 
 /**
+ * Matches the storage key auth-js uses for a single in-flight PKCE flow's code
+ * verifier: `<storageKey>-flow-<flowId>-code-verifier`.
+ *
+ * The length bound mirrors auth-js's own flow id validation, so a storage key
+ * that happens to contain `-flow-` is not mistaken for a verifier slot.
+ *
+ * Deliberately does not match the two neighbouring keys:
+ * - `<storageKey>-code-verifier`, the fixed key written for every flow.
+ * - `<storageKey>-flows-code-verifier`, the index of pending flow ids. There is
+ *   no `-` after `flow` there, so the pattern cannot match it.
+ */
+const PKCE_VERIFIER_SLOT_KEY = /-flow-[A-Za-z0-9_-]{8,64}-code-verifier$/;
+
+export function isPkceVerifierSlotKey(key: string): boolean {
+  return PKCE_VERIFIER_SLOT_KEY.test(key);
+}
+
+const PKCE_FLOW_INDEX_SUFFIX = "-flows-code-verifier";
+
+/**
+ * Matches auth-js's index of pending PKCE flow ids,
+ * `<storageKey>-flows-code-verifier`. Storage adapters cannot enumerate keys,
+ * so this entry is what makes the verifier slots discoverable for eviction and
+ * for teardown on sign-out.
+ */
+export function isPkceFlowIndexKey(key: string): boolean {
+  return key.endsWith(PKCE_FLOW_INDEX_SUFFIX);
+}
+
+/**
  * Decodes a chunked cookie value that may carry the `base64-` prefix written
  * by this module. When the prefix is present, the underlying payload is always
  * JSON encoded by auth-js (`setItemAsync` runs `JSON.stringify` on every
@@ -460,11 +490,40 @@ export function createStorageFromOptions(
         delete removedItems[key];
       },
       removeItem: async (key: string) => {
-        // Intentionally not applying the storage when the key is the PKCE code
-        // verifier, as usually right after it's removed other items are set,
-        // so application of the storage will be handled by the
+        // Intentionally not applying the storage when the key is the fixed
+        // PKCE code verifier, as usually right after it's removed other items
+        // are set, so application of the storage will be handled by the
         // `onAuthStateChange` callback that follows removal -- usually as part
-        // of the `exchangeCodeForSession` call.
+        // of the `exchangeCodeForSession` call. That key holds a single value
+        // which the next flow's `setItem` overwrites (applied immediately, see
+        // setItem above), so a removal that never reaches the browser is not
+        // observable.
+        //
+        // The per-flow verifier slots and the index of pending flow ids are
+        // the exception, because they can be removed on paths that emit no
+        // auth event at all: auth-js's ring evicts the oldest slot during a
+        // flow *start*, and a flow that fails removes its own slot (and the
+        // index entry, when it was the last one) from a catch block. Leaving
+        // those buffered would strand a verifier cookie in the browser with
+        // nothing referencing it, or an index that names a slot which is
+        // already gone.
+        if (isPkceVerifierSlotKey(key) || isPkceFlowIndexKey(key)) {
+          await applyServerStorage(
+            {
+              getAll,
+              setAll,
+              // pretend that nothing was set
+              setItems: {},
+              // pretend only that this verifier key was removed
+              removedItems: { [key]: true },
+            },
+            {
+              cookieOptions: options?.cookieOptions ?? null,
+              cookieEncoding,
+            },
+          );
+        }
+
         delete setItems[key];
         removedItems[key] = true;
       },

@@ -8,7 +8,12 @@ import {
 } from "./utils";
 import { CookieOptions } from "./types";
 
-import { createStorageFromOptions, applyServerStorage } from "./cookies";
+import {
+  createStorageFromOptions,
+  applyServerStorage,
+  isPkceFlowIndexKey,
+  isPkceVerifierSlotKey,
+} from "./cookies";
 
 describe("createStorageFromOptions in browser without cookie methods", () => {
   beforeEach(() => {
@@ -325,6 +330,172 @@ describe("createStorageFromOptions for createServerClient", () => {
       expect(setAllCalled).toBeFalsy();
       expect(setItems).toEqual({});
       expect(removedItems).toEqual({ "storage-key": true });
+    });
+
+    describe("PKCE code verifier keys", () => {
+      // auth-js has no `onAuthStateChange` event to announce a verifier write,
+      // so the storage is applied immediately for the verifier key family.
+      const STORAGE_KEY = "sb-project-ref-auth-token";
+      const LEGACY_KEY = `${STORAGE_KEY}-code-verifier`;
+      const INDEX_KEY = `${STORAGE_KEY}-flows-code-verifier`;
+      const slotKey = (flowId: string) =>
+        `${STORAGE_KEY}-flow-${flowId}-code-verifier`;
+      // shaped like a real flow id: 32 hex characters
+      const FLOW_ID = "0123456789abcdef0123456789abcdef";
+
+      const removedCookieOptions = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
+
+      const recordInto =
+        (calls: SetAllCall[]) =>
+        async (
+          cookies: SetAllCall["cookies"],
+          headers: SetAllCall["headers"],
+        ) => {
+          calls.push({ cookies, headers });
+        };
+
+      it("recognizes only per-flow slot keys as verifier slots", () => {
+        const slots = [slotKey(FLOW_ID), slotKey("flow-id-with-dashes")];
+        const notSlots = [
+          // the fixed key and the flow index are not slots
+          LEGACY_KEY,
+          INDEX_KEY,
+          STORAGE_KEY,
+          // too short to be a flow id, so a storage key that happens to
+          // contain `-flow-` does not look like a slot
+          "my-flow-abc-code-verifier",
+        ];
+
+        expect(slots.filter(isPkceVerifierSlotKey)).toEqual(slots);
+        expect(notSlots.filter(isPkceVerifierSlotKey)).toEqual([]);
+
+        // the index is matched separately, and only the index
+        expect(isPkceFlowIndexKey(INDEX_KEY)).toBe(true);
+        expect(slots.filter(isPkceFlowIndexKey)).toEqual([]);
+        expect(isPkceFlowIndexKey(LEGACY_KEY)).toBe(false);
+      });
+
+      it("should call setAll on setItem for the fixed code verifier key", async () => {
+        const setAllCalls: SetAllCall[] = [];
+        const { storage, setItems } = createServerStorageWithSetAll(
+          recordInto(setAllCalls),
+        );
+
+        await storage.setItem(LEGACY_KEY, "verifier-value");
+
+        expect(setAllCalls).toHaveLength(1);
+        expect(setAllCalls[0].cookies).toEqual([
+          {
+            name: LEGACY_KEY,
+            value: "verifier-value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ]);
+        // the buffer is still updated so a later applyServerStorage agrees
+        expect(setItems).toEqual({ [LEGACY_KEY]: "verifier-value" });
+      });
+
+      it("should call setAll on removeItem for a verifier slot key", async () => {
+        const setAllCalls: SetAllCall[] = [];
+        const { storage, setItems, removedItems } =
+          createServerStorageWithSetAll(recordInto(setAllCalls), async () => [
+            { name: slotKey(FLOW_ID), value: "verifier-value" },
+          ]);
+
+        await storage.removeItem(slotKey(FLOW_ID));
+
+        expect(setAllCalls).toHaveLength(1);
+        expect(setAllCalls[0].cookies).toEqual([
+          {
+            name: slotKey(FLOW_ID),
+            value: "",
+            options: removedCookieOptions,
+          },
+        ]);
+        expect(setItems).toEqual({});
+        expect(removedItems).toEqual({ [slotKey(FLOW_ID)]: true });
+      });
+
+      it("should not call setAll on removeItem for the fixed code verifier key", async () => {
+        const setAllCalls: SetAllCall[] = [];
+        const { storage, removedItems } = createServerStorageWithSetAll(
+          recordInto(setAllCalls),
+          async () => [{ name: LEGACY_KEY, value: "verifier-value" }],
+        );
+
+        await storage.removeItem(LEGACY_KEY);
+
+        // stays buffered: the exchange that removes it is followed by an auth
+        // event which applies the storage
+        expect(setAllCalls).toEqual([]);
+        expect(removedItems).toEqual({ [LEGACY_KEY]: true });
+      });
+
+      it("should call setAll on removeItem for the flow index key", async () => {
+        // the index is dropped when the last pending flow goes away, which
+        // happens from a catch block on a failed flow with no auth event to
+        // apply the storage. Leaving it buffered would keep an index in the
+        // browser naming a slot that was already cleared.
+        const setAllCalls: SetAllCall[] = [];
+        const { storage, removedItems } = createServerStorageWithSetAll(
+          recordInto(setAllCalls),
+          async () => [{ name: INDEX_KEY, value: "[]" }],
+        );
+
+        await storage.removeItem(INDEX_KEY);
+
+        expect(setAllCalls).toHaveLength(1);
+        expect(setAllCalls[0].cookies).toEqual([
+          { name: INDEX_KEY, value: "", options: removedCookieOptions },
+        ]);
+        expect(removedItems).toEqual({ [INDEX_KEY]: true });
+      });
+
+      it("clears the evicted slot cookie when a flow start overflows the ring", async () => {
+        // auth-js bounds concurrent flows at 5. Starting a 6th evicts the
+        // oldest slot and rewrites the index without it. The index write is
+        // applied, so if the eviction were only buffered -- no auth event
+        // fires on a flow *start* -- the evicted cookie would survive with
+        // nothing left referencing it.
+        const flowIds = [1, 2, 3, 4, 5, 6].map((n) => `${n}`.repeat(32));
+        const cookieStore: Record<string, string> = {
+          [LEGACY_KEY]: "verifier-5",
+          [INDEX_KEY]: JSON.stringify(flowIds.slice(0, 5)),
+        };
+        flowIds.slice(0, 5).forEach((flowId, i) => {
+          cookieStore[slotKey(flowId)] = `verifier-${i + 1}`;
+        });
+
+        const { storage } = createServerStorageWithSetAll(
+          async (setCookies) => {
+            setCookies.forEach(({ name, value }) => {
+              if (value) {
+                cookieStore[name] = value;
+              } else {
+                delete cookieStore[name];
+              }
+            });
+          },
+          async () =>
+            Object.entries(cookieStore).map(([name, value]) => ({
+              name,
+              value,
+            })),
+        );
+
+        // the writes auth-js performs when starting the 6th flow
+        await storage.setItem(slotKey(flowIds[5]), "verifier-6");
+        await storage.removeItem(slotKey(flowIds[0]));
+        await storage.setItem(INDEX_KEY, JSON.stringify(flowIds.slice(1)));
+        await storage.setItem(LEGACY_KEY, "verifier-6");
+
+        expect(Object.keys(cookieStore).filter(isPkceVerifierSlotKey)).toEqual(
+          flowIds.slice(1).map(slotKey),
+        );
+        // the evicted slot is gone rather than orphaned
+        expect(cookieStore[slotKey(flowIds[0])]).toBeUndefined();
+        expect(cookieStore[slotKey(flowIds[5])]).toBe("verifier-6");
+      });
     });
 
     it("should not call getAll if item has already been set", async () => {
