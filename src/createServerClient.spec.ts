@@ -86,13 +86,21 @@ describe("createServerClient", () => {
         });
 
         expect(error).toBeNull();
-        expect(setAllCalls).toEqual(1);
+        // since supabase-js 2.111.0 a flow start writes three keys (per-flow
+        // verifier slot, flow index, legacy fixed verifier key) and the server
+        // storage adapter flushes each one immediately
+        expect(setAllCalls).toEqual(3);
 
-        // change cookie values to a fixed value so snapshots don't change due to randomness
+        // change cookie values and the random flow id in slot cookie names to
+        // fixed values so snapshots don't change due to randomness
         setCookies.forEach((obj) => {
           if (typeof obj.value === "string") {
             obj.value = "<RANDOM VALUE>";
           }
+          obj.name = obj.name.replace(
+            /-flow-[A-Za-z0-9_-]+-code-verifier$/,
+            "-flow-<FLOW ID>-code-verifier",
+          );
         });
 
         expect(setCookies).toMatchSnapshot();
