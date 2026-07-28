@@ -24,6 +24,24 @@ import type {
 const BASE64_PREFIX = "base64-";
 
 /**
+ * Matches the storage key auth-js uses for a single in-flight PKCE flow's code
+ * verifier: `<storageKey>-flow-<flowId>-code-verifier`.
+ *
+ * The length bound mirrors auth-js's own flow id validation, so a storage key
+ * that happens to contain `-flow-` is not mistaken for a verifier slot.
+ *
+ * Deliberately does not match the two neighbouring keys:
+ * - `<storageKey>-code-verifier`, the fixed key written for every flow.
+ * - `<storageKey>-flows-code-verifier`, the index of pending flow ids. There is
+ *   no `-` after `flow` there, so the pattern cannot match it.
+ */
+const PKCE_VERIFIER_SLOT_KEY = /-flow-[A-Za-z0-9_-]{8,64}-code-verifier$/;
+
+export function isPkceVerifierSlotKey(key: string): boolean {
+  return PKCE_VERIFIER_SLOT_KEY.test(key);
+}
+
+/**
  * Decodes a chunked cookie value that may carry the `base64-` prefix written
  * by this module. When the prefix is present, the underlying payload is always
  * JSON encoded by auth-js (`setItemAsync` runs `JSON.stringify` on every
@@ -465,6 +483,31 @@ export function createStorageFromOptions(
         // so application of the storage will be handled by the
         // `onAuthStateChange` callback that follows removal -- usually as part
         // of the `exchangeCodeForSession` call.
+        //
+        // Per-flow verifier slots are the exception. auth-js bounds the number
+        // of concurrent PKCE flows with a ring that evicts the oldest slot
+        // during a flow *start*, where no auth event follows to apply the
+        // storage. The write that drops the evicted id from the flow index
+        // *is* applied (it ends in `-code-verifier`, see setItem above), so
+        // without this the slot's cookie would outlive every reference to it
+        // and never be cleaned up again.
+        if (isPkceVerifierSlotKey(key)) {
+          await applyServerStorage(
+            {
+              getAll,
+              setAll,
+              // pretend that nothing was set
+              setItems: {},
+              // pretend only that the verifier slot was removed
+              removedItems: { [key]: true },
+            },
+            {
+              cookieOptions: options?.cookieOptions ?? null,
+              cookieEncoding,
+            },
+          );
+        }
+
         delete setItems[key];
         removedItems[key] = true;
       },

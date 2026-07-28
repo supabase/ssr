@@ -327,6 +327,28 @@ There are two key points to identify from this about the behavior of
 2. **Cookies are set when the storage values change. Set-Cookie headers should
    not be sent out if there is no change.** Therefore cookies are set only on
    these `onAuthStateChange` events:
+   - `SIGNED_IN` -- when a session was established, such as by exchanging a PKCE code
    - `TOKEN_REFRESHED` -- when the access token was expired
    - `USER_UPDATED` -- usually only in pattern 3 -- routes or APIs that call the `updateUser()` API
+   - `PASSWORD_RECOVERY` -- when a recovery link established a session
    - `SIGNED_OUT` when the session expired or was terminated, such as the user signing out from another device
+   - `MFA_CHALLENGE_VERIFIED` -- when a multi-factor challenge was completed
+
+#### Exception: PKCE code verifiers
+
+There is no `onAuthStateChange` event that announces a PKCE code verifier being
+written, so waiting for one would drop the verifier and break the flow. The
+server storage therefore applies the storage immediately for any key ending in
+`-code-verifier`, which covers both the fixed `<storageKey>-code-verifier` key
+and the per-flow keys auth-js uses to keep several PKCE flows in flight at once
+(`<storageKey>-flow-<flowId>-code-verifier`, plus the
+`<storageKey>-flows-code-verifier` index of pending flow ids).
+
+Removals are normally left buffered, because the removal of a verifier during
+`exchangeCodeForSession` is immediately followed by an event that applies the
+storage anyway. Per-flow verifier slots are the one exception: auth-js bounds
+the number of concurrent flows with a ring that evicts the oldest slot when a
+new flow _starts_, and a flow start fires no event. Since the write that drops
+the evicted id from the index is applied, a buffered eviction would leave the
+slot's cookie behind with nothing referencing it, so slot removals are applied
+immediately too.
