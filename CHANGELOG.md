@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.4](https://github.com/supabase/ssr/compare/v0.12.3...v0.12.4) (2026-07-28)
+
+
+### Bug Fixes
+
+* flush PKCE verifier slot removals on the server ([#275](https://github.com/supabase/ssr/issues/275)) ([6df6f03](https://github.com/supabase/ssr/commit/6df6f031d798c95412ae7251337938408f57553c))
+
 ## [0.12.3](https://github.com/supabase/ssr/compare/v0.12.2...v0.12.3) (2026-07-14)
 
 
