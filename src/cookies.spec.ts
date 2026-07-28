@@ -11,6 +11,7 @@ import { CookieOptions } from "./types";
 import {
   createStorageFromOptions,
   applyServerStorage,
+  isPkceFlowIndexKey,
   isPkceVerifierSlotKey,
 } from "./cookies";
 
@@ -367,6 +368,11 @@ describe("createStorageFromOptions for createServerClient", () => {
 
         expect(slots.filter(isPkceVerifierSlotKey)).toEqual(slots);
         expect(notSlots.filter(isPkceVerifierSlotKey)).toEqual([]);
+
+        // the index is matched separately, and only the index
+        expect(isPkceFlowIndexKey(INDEX_KEY)).toBe(true);
+        expect(slots.filter(isPkceFlowIndexKey)).toEqual([]);
+        expect(isPkceFlowIndexKey(LEGACY_KEY)).toBe(false);
       });
 
       it("should call setAll on setItem for the fixed code verifier key", async () => {
@@ -425,7 +431,11 @@ describe("createStorageFromOptions for createServerClient", () => {
         expect(removedItems).toEqual({ [LEGACY_KEY]: true });
       });
 
-      it("should not call setAll on removeItem for the flow index key", async () => {
+      it("should call setAll on removeItem for the flow index key", async () => {
+        // the index is dropped when the last pending flow goes away, which
+        // happens from a catch block on a failed flow with no auth event to
+        // apply the storage. Leaving it buffered would keep an index in the
+        // browser naming a slot that was already cleared.
         const setAllCalls: SetAllCall[] = [];
         const { storage, removedItems } = createServerStorageWithSetAll(
           recordInto(setAllCalls),
@@ -434,7 +444,10 @@ describe("createStorageFromOptions for createServerClient", () => {
 
         await storage.removeItem(INDEX_KEY);
 
-        expect(setAllCalls).toEqual([]);
+        expect(setAllCalls).toHaveLength(1);
+        expect(setAllCalls[0].cookies).toEqual([
+          { name: INDEX_KEY, value: "", options: removedCookieOptions },
+        ]);
         expect(removedItems).toEqual({ [INDEX_KEY]: true });
       });
 

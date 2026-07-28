@@ -344,11 +344,16 @@ and the per-flow keys auth-js uses to keep several PKCE flows in flight at once
 (`<storageKey>-flow-<flowId>-code-verifier`, plus the
 `<storageKey>-flows-code-verifier` index of pending flow ids).
 
-Removals are normally left buffered, because the removal of a verifier during
-`exchangeCodeForSession` is immediately followed by an event that applies the
-storage anyway. Per-flow verifier slots are the one exception: auth-js bounds
-the number of concurrent flows with a ring that evicts the oldest slot when a
-new flow _starts_, and a flow start fires no event. Since the write that drops
-the evicted id from the index is applied, a buffered eviction would leave the
-slot's cookie behind with nothing referencing it, so slot removals are applied
-immediately too.
+Removal of the fixed `<storageKey>-code-verifier` key is left buffered. On a
+successful `exchangeCodeForSession` an event follows immediately and applies the
+storage; on a failure no event fires, but that key holds a single value which
+the next flow's write overwrites, so a removal that never reaches the browser is
+not observable.
+
+The per-flow keys are removed immediately instead, because both of the paths
+that remove them can emit no event at all. auth-js bounds the number of
+concurrent flows with a ring that evicts the oldest slot when a new flow
+_starts_, and a flow that fails removes its own slot from a catch block,
+dropping the index entry too when it was the last one. Leaving those buffered
+would strand a verifier cookie in the browser with nothing referencing it, or an
+index naming a slot that is already gone.

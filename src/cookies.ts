@@ -41,6 +41,18 @@ export function isPkceVerifierSlotKey(key: string): boolean {
   return PKCE_VERIFIER_SLOT_KEY.test(key);
 }
 
+const PKCE_FLOW_INDEX_SUFFIX = "-flows-code-verifier";
+
+/**
+ * Matches auth-js's index of pending PKCE flow ids,
+ * `<storageKey>-flows-code-verifier`. Storage adapters cannot enumerate keys,
+ * so this entry is what makes the verifier slots discoverable for eviction and
+ * for teardown on sign-out.
+ */
+export function isPkceFlowIndexKey(key: string): boolean {
+  return key.endsWith(PKCE_FLOW_INDEX_SUFFIX);
+}
+
 /**
  * Decodes a chunked cookie value that may carry the `base64-` prefix written
  * by this module. When the prefix is present, the underlying payload is always
@@ -478,27 +490,31 @@ export function createStorageFromOptions(
         delete removedItems[key];
       },
       removeItem: async (key: string) => {
-        // Intentionally not applying the storage when the key is the PKCE code
-        // verifier, as usually right after it's removed other items are set,
-        // so application of the storage will be handled by the
+        // Intentionally not applying the storage when the key is the fixed
+        // PKCE code verifier, as usually right after it's removed other items
+        // are set, so application of the storage will be handled by the
         // `onAuthStateChange` callback that follows removal -- usually as part
-        // of the `exchangeCodeForSession` call.
+        // of the `exchangeCodeForSession` call. That key holds a single value
+        // which the next flow's `setItem` overwrites (applied immediately, see
+        // setItem above), so a removal that never reaches the browser is not
+        // observable.
         //
-        // Per-flow verifier slots are the exception. auth-js bounds the number
-        // of concurrent PKCE flows with a ring that evicts the oldest slot
-        // during a flow *start*, where no auth event follows to apply the
-        // storage. The write that drops the evicted id from the flow index
-        // *is* applied (it ends in `-code-verifier`, see setItem above), so
-        // without this the slot's cookie would outlive every reference to it
-        // and never be cleaned up again.
-        if (isPkceVerifierSlotKey(key)) {
+        // The per-flow verifier slots and the index of pending flow ids are
+        // the exception, because they can be removed on paths that emit no
+        // auth event at all: auth-js's ring evicts the oldest slot during a
+        // flow *start*, and a flow that fails removes its own slot (and the
+        // index entry, when it was the last one) from a catch block. Leaving
+        // those buffered would strand a verifier cookie in the browser with
+        // nothing referencing it, or an index that names a slot which is
+        // already gone.
+        if (isPkceVerifierSlotKey(key) || isPkceFlowIndexKey(key)) {
           await applyServerStorage(
             {
               getAll,
               setAll,
               // pretend that nothing was set
               setItems: {},
-              // pretend only that the verifier slot was removed
+              // pretend only that this verifier key was removed
               removedItems: { [key]: true },
             },
             {
