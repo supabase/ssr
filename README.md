@@ -75,6 +75,7 @@ import {
   serializeCookieHeader,
 } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
+import type { MiddlewareFunction } from "react-router";
 import { supabaseContext } from "~/context";
 
 type PendingCookie = {
@@ -87,16 +88,10 @@ type PendingCookie = {
  * Framework-mode server middleware: refresh the session before loaders/actions
  * run, then attach any Set-Cookie / cache headers to the Response.
  */
-export async function supabaseMiddleware(
-  {
-    request,
-    context,
-  }: {
-    request: Request;
-    context: { set: (key: unknown, value: unknown) => void };
-  },
-  next: () => Promise<Response>,
-) {
+export const supabaseMiddleware: MiddlewareFunction<Response> = async (
+  { request, context },
+  next,
+) => {
   const pendingCookies: PendingCookie[] = [];
   const pendingHeaders: Record<string, string> = {};
 
@@ -133,7 +128,7 @@ export async function supabaseMiddleware(
   }
 
   return response;
-}
+};
 ```
 
 Attach it on a parent route (Framework mode) so child loaders can read the client
