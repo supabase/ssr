@@ -413,6 +413,20 @@ export function createStorageFromOptions(
     };
   }
 
+  const originalSetAll = setAll;
+  let hasSentHeaders = false;
+
+  setAll = async (setCookies, headers) => {
+    const shouldSendHeaders =
+      !hasSentHeaders && Object.keys(headers).length > 0;
+
+    if (shouldSendHeaders) {
+      hasSentHeaders = true;
+    }
+
+    await originalSetAll(setCookies, shouldSendHeaders ? headers : {});
+  };
+
   // This is the server client. It only uses getAll to read the initial
   // state. Any subsequent changes to the items is persisted in the
   // setItems and removedItems objects. createServerClient *must* use

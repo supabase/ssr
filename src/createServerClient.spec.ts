@@ -40,6 +40,67 @@ describe("createServerClient", () => {
   describe("use cases", () => {
     const storageKeys = [null, "custom-storage-key"];
 
+    it("should not repeat cache headers across PKCE cookie writes", async () => {
+      const cookieStore = new Map<string, string>();
+      const responseHeaders = new Map<string, string>();
+      let setAllCalls = 0;
+
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "anon-key",
+        {
+          cookies: {
+            getAll() {
+              return [...cookieStore].map(([name, value]) => ({ name, value }));
+            },
+
+            setAll(cookiesToSet, headers) {
+              setAllCalls += 1;
+
+              cookiesToSet.forEach(({ name, value }) => {
+                if (value) {
+                  cookieStore.set(name, value);
+                } else {
+                  cookieStore.delete(name);
+                }
+              });
+
+              Object.entries(headers).forEach(([name, value]) => {
+                const normalizedName = name.toLowerCase();
+
+                if (responseHeaders.has(normalizedName)) {
+                  throw new Error(`"${name}" header is already set`);
+                }
+
+                responseHeaders.set(normalizedName, value);
+              });
+            },
+          },
+
+          global: {
+            fetch: async () =>
+              new Response("{}", {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              }),
+          },
+        },
+      );
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: "user@example.com",
+      });
+
+      expect(error).toBeNull();
+      expect(setAllCalls).toEqual(3);
+      expect(Object.fromEntries(responseHeaders)).toEqual({
+        "cache-control":
+          "private, no-cache, no-store, must-revalidate, max-age=0",
+        expires: "0",
+        pragma: "no-cache",
+      });
+    });
+
     storageKeys.forEach((storageKey) => {
       it(`should set PKCE code verifier correctly (storage key = ${storageKey})`, async () => {
         let setAllCalls = 0;

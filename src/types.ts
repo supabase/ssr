@@ -35,7 +35,8 @@ export type SetAllCookies = (
    * Headers that must be set on the HTTP response alongside the cookies.
    * Responses that set auth cookies must not be cached by CDNs or
    * reverse proxies, otherwise one user's session token can be served
-   * to a different user.
+   * to a different user. This object is empty after the headers have already
+   * been supplied to an earlier call from the same server client.
    *
    * The library passes the following headers when auth cookies are set:
    * - `Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0`
