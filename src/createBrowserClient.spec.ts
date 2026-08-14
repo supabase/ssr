@@ -157,4 +157,51 @@ describe("createBrowserClient", () => {
       ).not.toThrow();
     });
   });
+
+  describe("storage option", () => {
+    let warnings: any[][];
+    let warnSpy: any;
+
+    beforeEach(() => {
+      warnings = [];
+      warnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation((...args: any[]) => {
+          warnings.push(args);
+        });
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it("warns when `auth.storage` is passed, since it is always ignored", () => {
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        auth: { storage: {} as any },
+      });
+
+      expect(warnings.some((args) => /auth\.storage/.test(args[0]))).toBe(true);
+    });
+
+    it("does not warn when `auth.storage` is not passed", () => {
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+      });
+
+      expect(warnings.some((args) => /auth\.storage/.test(args[0]))).toBe(
+        false,
+      );
+    });
+
+    it("still uses the cookie-backed storage even when `auth.storage` is passed", () => {
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        auth: { storage: { fake: true } as any },
+      });
+
+      const passedOptions = createClientSpy.mock.calls[0][2];
+      expect(passedOptions.auth.storage).not.toEqual({ fake: true });
+    });
+  });
 });

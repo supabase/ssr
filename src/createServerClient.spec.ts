@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { MAX_CHUNK_SIZE, stringToBase64URL } from "./utils";
 import { CookieOptions } from "./types";
@@ -624,6 +624,57 @@ describe("createServerClient", () => {
 
       // Constructor must not trigger any network activity
       expect(fetchCallCount).toBe(0);
+    });
+  });
+
+  describe("storage option", () => {
+    let warnings: any[][];
+    let warnSpy: any;
+
+    beforeEach(() => {
+      warnings = [];
+      warnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation((...args: any[]) => {
+          warnings.push(args);
+        });
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it("warns when `auth.storage` is passed, since it is always ignored", () => {
+      createServerClient("https://project-ref.supabase.co", "anon-key", {
+        cookies: {
+          getAll() {
+            return [];
+          },
+          setAll() {
+            // no-op
+          },
+        },
+        auth: { storage: {} as any },
+      });
+
+      expect(warnings.some((args) => /auth\.storage/.test(args[0]))).toBe(true);
+    });
+
+    it("does not warn when `auth.storage` is not passed", () => {
+      createServerClient("https://project-ref.supabase.co", "anon-key", {
+        cookies: {
+          getAll() {
+            return [];
+          },
+          setAll() {
+            // no-op
+          },
+        },
+      });
+
+      expect(warnings.some((args) => /auth\.storage/.test(args[0]))).toBe(
+        false,
+      );
     });
   });
 });

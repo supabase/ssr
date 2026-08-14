@@ -29,6 +29,14 @@ let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
  * in difficult to debug authentication issues such as random logouts, early
  * session termination or problems with inconsistent state.
  *
+ * **The `auth.storage` option is ignored.** The session is always persisted via
+ * cookies so that a server-rendered request can read it. Passing
+ * `options.auth.storage` has no effect — a console warning is logged if you
+ * do. (`options.auth.userStorage` is still respected when `cookies.encode` is `"tokens-only"`.)
+ * If you don't need the session to be readable server-side, use
+ * `@supabase/supabase-js`'s `createClient` directly with your own `storage`
+ * instead; `@supabase/ssr` isn't needed in that case.
+ *
  * @param supabaseUrl The URL of the Supabase project.
  * @param supabaseKey The `anon` API key of the Supabase project.
  * @param options Various configuration options.
@@ -91,6 +99,12 @@ export function createBrowserClient<
   },
 ): SupabaseClient<Database, SchemaName> {
   warnIfUsingDeprecatedAuthHelpersPackage();
+
+  if (options?.auth?.storage) {
+    console.warn(
+      "@supabase/ssr: createBrowserClient always manages the session via cookies, so the `auth.storage` option you passed is ignored. If you don't need the session to be readable on the server, use @supabase/supabase-js's createClient directly with your own `storage` instead.",
+    );
+  }
 
   // singleton client is created only if isSingleton is set to true, or if isSingleton is not defined and we detect a browser
   const shouldUseSingleton =

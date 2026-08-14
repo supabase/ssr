@@ -38,6 +38,16 @@ Please refer to the [official server-side rendering guides](https://supabase.com
 For guidance on choosing between `getSession()`, `getUser()`, and `getClaims()`,
 see the [official server-side rendering guides](https://supabase.com/docs/guides/auth/server-side).
 
+### The `auth.storage` option is ignored
+
+`createBrowserClient` and `createServerClient` always store the session in
+cookies — this is the entire point of the package, since it lets a
+server-rendered request read the same session the browser wrote. Passing
+`auth.storage` has no effect; a console warning is logged if you do. (`auth.userStorage` is different and is still respected when `cookies.encode` is set to `"tokens-only"`.) If you
+don't need server-side access to the session, use `@supabase/supabase-js`'s
+`createClient` directly with your own `storage` (e.g. `localStorage`) —
+there's no reason to use `@supabase/ssr` in that case.
+
 ### Concurrent requests with the same expired session
 
 Supabase refresh tokens are single-use. If two requests arrive simultaneously
