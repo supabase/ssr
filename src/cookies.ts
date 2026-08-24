@@ -420,11 +420,11 @@ export function createStorageFromOptions(
     const shouldSendHeaders =
       !hasSentHeaders && Object.keys(headers).length > 0;
 
+    await originalSetAll(setCookies, shouldSendHeaders ? headers : {});
+
     if (shouldSendHeaders) {
       hasSentHeaders = true;
     }
-
-    await originalSetAll(setCookies, shouldSendHeaders ? headers : {});
   };
 
   // This is the server client. It only uses getAll to read the initial
