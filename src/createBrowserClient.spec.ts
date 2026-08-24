@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { MAX_CHUNK_SIZE, stringToBase64URL } from "./utils";
 import { CookieOptions } from "./types";
 import { createBrowserClient } from "./createBrowserClient";
+import { resetWarnOnceForTesting } from "./warnOnce";
 
 // Spy on createClient to capture auth options passed through
 const createClientSpy = vi.fn().mockReturnValue({
@@ -163,6 +164,7 @@ describe("createBrowserClient", () => {
     let warnSpy: any;
 
     beforeEach(() => {
+      resetWarnOnceForTesting();
       warnings = [];
       warnSpy = vi
         .spyOn(console, "warn")
@@ -182,6 +184,21 @@ describe("createBrowserClient", () => {
       });
 
       expect(warnings.some((args) => /auth\.storage/.test(args[0]))).toBe(true);
+    });
+
+    it("warns only once across multiple calls", () => {
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        auth: { storage: {} as any },
+      });
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        auth: { storage: {} as any },
+      });
+
+      expect(
+        warnings.filter((args) => /auth\.storage/.test(args[0])).length,
+      ).toBe(1);
     });
 
     it("does not warn when `auth.storage` is not passed", () => {

@@ -43,7 +43,7 @@ see the [official server-side rendering guides](https://supabase.com/docs/guides
 `createBrowserClient` and `createServerClient` always store the session in
 cookies — this is the entire point of the package, since it lets a
 server-rendered request read the same session the browser wrote. Passing
-`auth.storage` has no effect; a console warning is logged if you do. (`auth.userStorage` is different and is still respected when `cookies.encode` is set to `"tokens-only"`.) If you
+`auth.storage` has no effect; a one-time console warning is logged if you do. (`auth.userStorage` is different and is still respected when `cookies.encode` is set to `"tokens-only"`.) If you
 don't need server-side access to the session, use `@supabase/supabase-js`'s
 `createClient` directly with your own `storage` (e.g. `localStorage`) —
 there's no reason to use `@supabase/ssr` in that case.

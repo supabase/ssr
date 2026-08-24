@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import { memoryLocalStorageAdapter } from "./utils/helpers";
 import { VERSION } from "./version";
+import { warnOnce } from "./warnOnce";
 import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
 
 /**
@@ -85,8 +86,8 @@ export function createServerClient<
  * to cookies via the `setAll` handler.
  *
  * **The `auth.storage` option is ignored.** The session is always persisted via
- * cookies. Passing `options.auth.storage` has no effect — a console warning
- * is logged if you do. (`options.auth.userStorage` is still respected when `cookies.encode` is `"tokens-only"`.)
+ * cookies. Passing `options.auth.storage` has no effect — a one-time console
+ * warning is logged if you do. (`options.auth.userStorage` is still respected when `cookies.encode` is `"tokens-only"`.)
  * If you want to source the session from somewhere other than the request cookies,
  * use `@supabase/supabase-js`'s `createClient` directly with your own `storage`
  * instead; `@supabase/ssr` isn't needed in that case.
@@ -130,15 +131,15 @@ export function createServerClient<
 ): SupabaseClient<Database, SchemaName> {
   warnIfUsingDeprecatedAuthHelpersPackage();
 
-  if (options?.auth?.storage) {
-    console.warn(
-      "@supabase/ssr: createServerClient always manages the session via cookies, so the `auth.storage` option you passed is ignored. If you want to source the session from somewhere other than the request cookies, use @supabase/supabase-js's createClient directly with your own `storage` instead.",
-    );
-  }
-
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
       `Your project's URL and Key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api`,
+    );
+  }
+
+  if (options?.auth?.storage) {
+    warnOnce(
+      "@supabase/ssr: createServerClient always manages the session via cookies, so the `auth.storage` option you passed is ignored. If you want to source the session from somewhere other than the request cookies, use @supabase/supabase-js's createClient directly with your own `storage` instead.",
     );
   }
 
