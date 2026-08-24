@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.5](https://github.com/supabase/ssr/compare/v0.12.4...v0.12.5) (2026-08-24)
+
+
+### Bug Fixes
+
+* warn when auth.storage is ignored by createBrowserClient/createServerClient ([#284](https://github.com/supabase/ssr/issues/284)) ([c1700f2](https://github.com/supabase/ssr/commit/c1700f277f7f03b13e20ff11abeea633816d5238)), closes [#142](https://github.com/supabase/ssr/issues/142)
+
 ## [0.12.4](https://github.com/supabase/ssr/compare/v0.12.3...v0.12.4) (2026-07-28)
 
 
