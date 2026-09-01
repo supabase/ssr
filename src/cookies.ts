@@ -1,4 +1,4 @@
-import { parse, serialize } from "cookie";
+import * as cookie from "cookie";
 
 import {
   DEFAULT_COOKIE_OPTIONS,
@@ -121,7 +121,7 @@ export function createStorageFromOptions(
   let setAll: SetAllCookies;
 
   const documentCookieGetAll = () => {
-    const parsed = parse(document.cookie);
+    const parsed = cookie.parse(document.cookie);
 
     return Object.keys(parsed).map((name) => ({
       name,
@@ -131,7 +131,7 @@ export function createStorageFromOptions(
 
   const documentCookieSetAll: SetAllCookies = (setCookies) => {
     setCookies.forEach(({ name, value, options }) => {
-      document.cookie = serialize(name, value, options);
+      document.cookie = cookie.serialize(name, value, options);
     });
   };
 
