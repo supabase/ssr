@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.6](https://github.com/supabase/ssr/compare/v0.12.5...v0.12.6) (2026-09-04)
+
+
+### Bug Fixes
+
+* avoid duplicate cache headers per server client ([#283](https://github.com/supabase/ssr/issues/283)) ([af750e2](https://github.com/supabase/ssr/commit/af750e259b7fab43b9cbc0c19873384a666a7a47))
+
 ## [0.12.5](https://github.com/supabase/ssr/compare/v0.12.4...v0.12.5) (2026-08-24)
 
 
