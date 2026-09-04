@@ -547,7 +547,7 @@ export function createStorageFromOptions(
 
 /**
  * When createServerClient needs to apply the created storage to cookies, it
- * should call this function which handles correcly setting cookies for stored
+ * should call this function which handles correctly setting cookies for stored
  * and removed items in the storage.
  */
 export async function applyServerStorage(

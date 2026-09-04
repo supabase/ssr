@@ -76,7 +76,7 @@ export type CookieMethodsBrowser = {
   /**
    * If set to true, only the user's session (access and refresh tokens) will be encoded in cookies. The user object will be encoded in local storage if the `userStorage` option is not provided when creating the client.
    *
-   * You should keep this option the same between `createBrowserClient()` and `createServerClient()`. When set to `tokens-only` accessing the `user` property on the data returned from `getSession()` will only be possible if the user has already been stored in the separate storage. It's best to use `getClaims()` instead to avoid surprizes.
+   * You should keep this option the same between `createBrowserClient()` and `createServerClient()`. When set to `tokens-only` accessing the `user` property on the data returned from `getSession()` will only be possible if the user has already been stored in the separate storage. It's best to use `getClaims()` instead to avoid surprises.
    *
    * @experimental
    */

@@ -24,7 +24,7 @@ the request (and therefore cookies) are sent _well before any JavaScript runs
 on the page._ In fact, JavaScript can only run after the response from the
 server is received. This means that the access token is very likely expired
 when sent to the server, and it's the server's job to use the refresh token (as
-an extension of the usser's agent) to obtain a new access token.
+an extension of the user's agent) to obtain a new access token.
 
 Since a refresh token can only be used once, the server must send back the new
 access token it received as `Set-Cookie` headers.
@@ -225,7 +225,7 @@ All SSR frameworks today can be described as having the following patterns:
 
 1. **Middleware.** This is a function that runs on the server _before_ any
    rendering is done. It has access to the whole request, including headers,
-   cookies and other infromation. Usually these functions have the right to
+   cookies and other information. Usually these functions have the right to
    change the response headers as well, such as for setting cookies. They are
    often used to:
    - Redirect to other pages (like to `/sign-in` to ask the user to sign in, or
@@ -285,7 +285,7 @@ First contentful paint, etc.).
 
 It's important to notice that server-rendering _primarily_ comes into play on
 fresh page loads. Once a page has been rendered and hydrated in the browser,
-client React compoenents take over. When using the Supabase Auth library in the
+client React components take over. When using the Supabase Auth library in the
 browser in such a way, the user's session (access and refresh tokens) are
 proactively and ahead-of-time refreshed, meaning that they are continuously set
 as cookies well ahead of their expiry time.
