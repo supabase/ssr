@@ -37,6 +37,12 @@ export type SetAllCookies = (
    * reverse proxies, otherwise one user's session token can be served
    * to a different user.
    *
+   * For a server client, the cache headers are delivered only with the first
+   * cookie write. A new server client must be created for each request;
+   * reusing one across requests would leave later responses without the
+   * required cache headers. This object is empty on later calls from the same
+   * client.
+   *
    * The library passes the following headers when auth cookies are set:
    * - `Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0`
    * - `Expires: 0`

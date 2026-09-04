@@ -280,6 +280,35 @@ describe("createStorageFromOptions for createServerClient", () => {
         true,
       );
 
+    it("should retry cache headers when setAll rejects", async () => {
+      const cacheHeaders = {
+        "Cache-Control": "no-store",
+        Expires: "0",
+        Pragma: "no-cache",
+      };
+      const cookiesToSet = [{ name: "cookie", value: "value", options: {} }];
+      const receivedHeaders: Record<string, string>[] = [];
+      let setAllCalls = 0;
+
+      const { setAll } = createServerStorageWithSetAll(
+        async (_setCookies, headers) => {
+          setAllCalls += 1;
+          receivedHeaders.push(headers);
+
+          if (setAllCalls === 1) {
+            throw new Error("setAll failed");
+          }
+        },
+      );
+
+      await expect(setAll(cookiesToSet, cacheHeaders)).rejects.toThrow(
+        "setAll failed",
+      );
+      await expect(setAll(cookiesToSet, cacheHeaders)).resolves.toBeUndefined();
+
+      expect(receivedHeaders).toEqual([cacheHeaders, cacheHeaders]);
+    });
+
     it("should not call setAll on setItem", async () => {
       let setAllCalled = false;
 
