@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc && tsc -p tsconfig.main.json",
     "docs": "typedoc",
-    "test": "vitest"
+    "test": "vitest",
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
