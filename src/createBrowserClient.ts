@@ -10,7 +10,7 @@ import type {
   CookieMethodsBrowserDeprecated,
   CookieOptionsWithName,
 } from "./types";
-import { isBrowser } from "./utils";
+import { isBrowser, memoryLocalStorageAdapter } from "./utils";
 import { VERSION } from "./version";
 import { warnOnce } from "./warnOnce";
 import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage";
@@ -154,7 +154,9 @@ export function createBrowserClient<
       "encode" in options.cookies &&
       options.cookies.encode === "tokens-only"
         ? {
-            userStorage: options?.auth?.userStorage ?? window.localStorage,
+            userStorage:
+              options?.auth?.userStorage ??
+              (isBrowser() ? window.localStorage : memoryLocalStorageAdapter()),
           }
         : null),
     },

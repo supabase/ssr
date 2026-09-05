@@ -111,7 +111,12 @@ export function createStorageFromOptions(
   },
   isServerClient: boolean,
 ) {
-  const cookies = options.cookies ?? null;
+  // A cookies object without accessors (e.g. only `encode`) is treated the
+  // same as omitting cookies, so the runtime-specific defaults below apply.
+  const cookies =
+    options.cookies && ("get" in options.cookies || "getAll" in options.cookies)
+      ? options.cookies
+      : null;
   const cookieEncoding = options.cookieEncoding;
 
   const setItems: { [key: string]: string } = {};
@@ -210,12 +215,6 @@ export function createStorageFromOptions(
           "@supabase/ssr: createBrowserClient requires configuring both getAll and setAll cookie methods (deprecated: alternatively both get, set and remove can be used)",
         );
       }
-    } else if (!isServerClient && isBrowser()) {
-      // cookies object provided (e.g. just to set `encode`) but no accessors.
-      // Fall through to document.cookie defaults, same as when cookies isn't
-      // provided at all.
-      getAll = () => documentCookieGetAll();
-      setAll = documentCookieSetAll;
     } else {
       // neither get nor getAll is present on cookies, only will occur if pure JavaScript is used, but cookies is an object
       throw new Error(
