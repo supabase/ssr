@@ -159,6 +159,39 @@ describe("createBrowserClient", () => {
     });
   });
 
+  describe("encode option outside a browser runtime", () => {
+    it("accepts cookies: { encode: 'tokens-only' } without getAll/setAll when window is undefined", async () => {
+      expect(() =>
+        createBrowserClient("http://localhost", "anon-key", {
+          isSingleton: false,
+          cookies: { encode: "tokens-only" },
+        }),
+      ).not.toThrow();
+
+      const passedOptions = createClientSpy.mock.calls[0][2];
+      expect(passedOptions.auth.userStorage).toBeDefined();
+      expect(
+        await passedOptions.auth.storage.getItem("sb-x-auth-token"),
+      ).toBeNull();
+    });
+
+    it("accepts cookies: { encode: 'tokens-only' } with getAll/setAll when window is undefined", () => {
+      expect(() =>
+        createBrowserClient("http://localhost", "anon-key", {
+          isSingleton: false,
+          cookies: {
+            encode: "tokens-only",
+            getAll: () => [],
+            setAll: () => {},
+          },
+        }),
+      ).not.toThrow();
+
+      const passedOptions = createClientSpy.mock.calls[0][2];
+      expect(passedOptions.auth.userStorage).toBeDefined();
+    });
+  });
+
   describe("storage option", () => {
     let warnings: any[][];
     let warnSpy: any;
