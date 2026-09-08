@@ -1,5 +1,12 @@
 # @supabase/ssr
 
+## [0.12.7](https://github.com/supabase/ssr/compare/v0.12.6...v0.12.7) (2026-09-08)
+
+
+### Bug Fixes
+
+* apply non-browser defaults when cookies only sets encode ([#294](https://github.com/supabase/ssr/issues/294)) ([9d6e2a5](https://github.com/supabase/ssr/commit/9d6e2a54f5e7f205388218f7fe732b8622d3ebd8))
+
 ## [0.12.6](https://github.com/supabase/ssr/compare/v0.12.5...v0.12.6) (2026-09-04)
 
 
