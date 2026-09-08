@@ -1,4 +1,10 @@
-import { parse, serialize } from "cookie";
+// Use a namespace import rather than named imports (`import { parse, serialize }`).
+// `cookie` is published as CommonJS only (no `exports` map / ESM build), so named
+// imports rely on static CJS named-export detection, which fails in some strict-ESM
+// bundlers (e.g. Nuxt 4 / Vite + pnpm) with "does not provide an export named 'parse'".
+// The namespace form accesses the members at runtime and avoids that. Mirrors the
+// import already used in ./utils/helpers.ts. See #137 / #62.
+import * as cookie from "cookie";
 
 import {
   DEFAULT_COOKIE_OPTIONS,
@@ -126,7 +132,7 @@ export function createStorageFromOptions(
   let setAll: SetAllCookies;
 
   const documentCookieGetAll = () => {
-    const parsed = parse(document.cookie);
+    const parsed = cookie.parse(document.cookie);
 
     return Object.keys(parsed).map((name) => ({
       name,
@@ -136,7 +142,7 @@ export function createStorageFromOptions(
 
   const documentCookieSetAll: SetAllCookies = (setCookies) => {
     setCookies.forEach(({ name, value, options }) => {
-      document.cookie = serialize(name, value, options);
+      document.cookie = cookie.serialize(name, value, options);
     });
   };
 
