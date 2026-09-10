@@ -44,7 +44,7 @@
     "typedoc": "^0.28.19",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.10.0",
-    "vitest": "^4.1.0"
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2.114.0"
