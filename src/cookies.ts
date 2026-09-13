@@ -203,7 +203,7 @@ export function createStorageFromOptions(
       getAll = async () => await cookies.getAll!();
 
       if ("setAll" in cookies) {
-        setAll = cookies.setAll!;
+        setAll = cookies.setAll!.bind(cookies);
       } else if (isServerClient) {
         setAll = async () => {
           console.warn(
