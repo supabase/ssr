@@ -15,6 +15,11 @@ const EXAMPLES = [
   "нешто на кирилица",
   "something with emojis 🤙🏾 ",
   "Supabaseは、オープンソースの Firebase 代替製品です。エンタープライズグレードのオープンソースツールを使って、Firebase の機能を構築しています。",
+  // characters at or above U+20000 (CJK Extension B+), e.g. in Japanese
+  // and Chinese personal names
+  "𠮷野家 𩸽 𪚲",
+  // the last codepoint representable with a surrogate pair
+  "\u{10FFFF}",
 ];
 
 describe("stringToBase64URL", () => {
