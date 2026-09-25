@@ -173,7 +173,9 @@ export function stringToUTF8(str: string, emit: (byte: number) => void) {
       // most UTF-16 codepoints are Unicode codepoints, except values in this
       // range where the next UTF-16 codepoint needs to be combined with the
       // current one to get the Unicode codepoint
-      const highSurrogate = ((codepoint - 0xd800) * 0x400) & 0xffff;
+      // The high surrogate carries the top 10 of the 20 bits, so it spans up
+      // to 0xffc00 and must not be masked to 16 bits.
+      const highSurrogate = (codepoint - 0xd800) * 0x400;
       const lowSurrogate = (str.charCodeAt(i + 1) - 0xdc00) & 0xffff;
       codepoint = (lowSurrogate | highSurrogate) + 0x10000;
       i += 1;
