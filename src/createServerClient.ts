@@ -163,10 +163,12 @@ export function createServerClient<
       },
     },
     auth: {
+      ...options?.auth,
+      // Same precedence as createBrowserClient, so both read and write the
+      // same cookie when cookieOptions.name and auth.storageKey are both set.
       ...(options?.cookieOptions?.name
         ? { storageKey: options.cookieOptions.name }
         : null),
-      ...options?.auth,
       flowType: "pkce",
       autoRefreshToken: false,
       detectSessionInUrl: false,
