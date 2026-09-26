@@ -689,6 +689,52 @@ describe("createServerClient", () => {
     });
   });
 
+  describe("storage key", () => {
+    it("reads the session from the cookieOptions.name cookie when auth.storageKey is also set, like createBrowserClient", async () => {
+      const supabase = createServerClient(
+        "https://project-ref.supabase.co",
+        "anon-key",
+        {
+          cookieOptions: { name: "custom-cookie-name" },
+          auth: { storageKey: "custom-auth-storage-key" },
+          cookies: {
+            getAll() {
+              return [
+                {
+                  name: "custom-cookie-name",
+                  value:
+                    "base64-" +
+                    stringToBase64URL(
+                      JSON.stringify({
+                        token_type: "bearer",
+                        access_token: "<valid-access-token>",
+                        refresh_token: "<valid-refresh-token>",
+                        expires_at: Math.floor(Date.now() / 1000) + 5 * 60,
+                        expires_in: 5 * 60,
+                        user: { id: "<valid-user-id>" },
+                      }),
+                    ),
+                },
+              ];
+            },
+            setAll() {},
+          },
+          global: {
+            fetch: async () => {
+              throw new Error("Should not be called");
+            },
+          },
+        },
+      );
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      expect(session?.user.id).toEqual("<valid-user-id>");
+    });
+  });
+
   describe("storage option", () => {
     let warnings: any[][];
     let warnSpy: any;
