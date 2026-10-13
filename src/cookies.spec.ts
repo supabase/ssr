@@ -254,9 +254,143 @@ describe("createStorageFromOptions for createServerClient", () => {
         ],
       ]);
     });
+
+    it("should log a warning when setAll is explicitly undefined", async () => {
+      const { setAll } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: undefined,
+          },
+        },
+        true,
+      );
+
+      await setAll(
+        [
+          {
+            name: "cookie",
+            value: "value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+        {},
+      );
+
+      expect(warnings).toEqual([
+        [
+          "@supabase/ssr: createServerClient was configured without the setAll cookie method, but the client needs to set cookies. This can lead to issues such as random logouts, early session termination or increased token refresh requests. If in NextJS, check your middleware.ts file, route handlers and server actions for correctness.",
+        ],
+      ]);
+    });
+
+    it("should log a warning when set and remove are explicitly undefined", async () => {
+      const { setAll } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            get: async () => null,
+            set: undefined,
+            remove: undefined,
+          },
+        },
+        true,
+      );
+
+      await setAll(
+        [
+          {
+            name: "cookie",
+            value: "value",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+        {},
+      );
+
+      expect(warnings).toEqual([
+        [
+          "@supabase/ssr: createServerClient was configured without set and remove cookie methods, but the client needs to set cookies. This can lead to issues such as random logouts, early session termination or increased token refresh requests. If in NextJS, check your middleware.ts file, route handlers and server actions for correctness. Consider switching to the getAll and setAll cookie methods instead of get, set and remove which are deprecated and can be difficult to use correctly.",
+        ],
+      ]);
+    });
   });
 
   describe("storage with getAll, setAll", () => {
+    it("preserves the cookie method receiver on setAll", async () => {
+      class StatefulCookieAdapter {
+        values: { name: string; value: string; options: CookieOptions }[] = [];
+        headers: Record<string, string> = {};
+
+        getAll() {
+          return this.values.map(({ name, value }) => ({ name, value }));
+        }
+
+        setAll(
+          cookies: { name: string; value: string; options: CookieOptions }[],
+          headers: Record<string, string>,
+        ) {
+          this.values = cookies;
+          this.headers = headers;
+        }
+      }
+
+      const adapter = new StatefulCookieAdapter();
+      const { setAll } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: adapter,
+        },
+        true,
+      );
+
+      await setAll(
+        [
+          {
+            name: "test",
+            value: "123",
+            options: { ...DEFAULT_COOKIE_OPTIONS },
+          },
+        ],
+        { "Cache-Control": "no-store" },
+      );
+
+      expect(adapter.values).toEqual([
+        {
+          name: "test",
+          value: "123",
+          options: { ...DEFAULT_COOKIE_OPTIONS },
+        },
+      ]);
+      expect(adapter.headers).toEqual({ "Cache-Control": "no-store" });
+    });
+
+    it("should not throw when setAll is called without headers argument", async () => {
+      const calls: any[] = [];
+      const { setAll } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookies: {
+            getAll: async () => [],
+            setAll: (cookies) => {
+              calls.push(cookies);
+            },
+          },
+        },
+        true,
+      );
+
+      await (setAll as any)([
+        {
+          name: "test",
+          value: "123",
+          options: { ...DEFAULT_COOKIE_OPTIONS },
+        },
+      ]);
+
+      expect(calls).toHaveLength(1);
+    });
     type SetAllCall = {
       cookies: { name: string; value: string; options: CookieOptions }[];
       headers: Record<string, string>;
