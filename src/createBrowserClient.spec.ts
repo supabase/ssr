@@ -133,6 +133,69 @@ describe("createBrowserClient", () => {
       expect(passedOptions.auth.userStorage).toBeDefined();
     });
 
+    it("uses memory user storage when accessing localStorage throws", async () => {
+      Object.defineProperty(window, "localStorage", {
+        get() {
+          throw new DOMException("Storage access is denied", "SecurityError");
+        },
+      });
+
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        cookies: { encode: "tokens-only" },
+      });
+
+      const { userStorage, storage } = createClientSpy.mock.calls[0][2].auth;
+      await userStorage.setItem("sb-test-auth-token-user", "user-data");
+      expect(await userStorage.getItem("sb-test-auth-token-user")).toBe(
+        "user-data",
+      );
+      await userStorage.removeItem("sb-test-auth-token-user");
+      expect(await userStorage.getItem("sb-test-auth-token-user")).toBeNull();
+
+      await storage.setItem(
+        "sb-test-auth-token",
+        JSON.stringify({ access_token: "token" }),
+      );
+      expect(await storage.getItem("sb-test-auth-token")).toBe(
+        JSON.stringify({ access_token: "token" }),
+      );
+    });
+
+    it("prefers explicit userStorage without accessing localStorage", () => {
+      Object.defineProperty(window, "localStorage", {
+        get() {
+          throw new DOMException("Storage access is denied", "SecurityError");
+        },
+      });
+      const userStorage = {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+      };
+
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        cookies: { encode: "tokens-only" },
+        auth: { userStorage },
+      });
+
+      expect(createClientSpy.mock.calls[0][2].auth.userStorage).toBe(
+        userStorage,
+      );
+    });
+
+    it("keeps browser localStorage when it is accessible", () => {
+      createBrowserClient("http://localhost", "anon-key", {
+        isSingleton: false,
+        cookies: { encode: "tokens-only" },
+      });
+
+      expect(createClientSpy.mock.calls[0][2].auth.userStorage).toBe(
+        window.localStorage,
+      );
+    });
+
     it("accepts cookies: { encode: 'user-and-tokens' } without getAll/setAll and does not set userStorage", () => {
       expect(() =>
         createBrowserClient("http://localhost", "anon-key", {

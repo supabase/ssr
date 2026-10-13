@@ -17,6 +17,18 @@ import { warnIfUsingDeprecatedAuthHelpersPackage } from "./warnDeprecatedPackage
 
 let cachedBrowserClient: SupabaseClient<any, any, any> | undefined;
 
+function defaultUserStorage() {
+  if (isBrowser()) {
+    try {
+      return window.localStorage;
+    } catch {
+      // Browsers can deny access to localStorage while cookies remain usable.
+    }
+  }
+
+  return memoryLocalStorageAdapter();
+}
+
 /**
  * Creates a Supabase Client for use in a browser environment.
  *
@@ -154,9 +166,7 @@ export function createBrowserClient<
       "encode" in options.cookies &&
       options.cookies.encode === "tokens-only"
         ? {
-            userStorage:
-              options?.auth?.userStorage ??
-              (isBrowser() ? window.localStorage : memoryLocalStorageAdapter()),
+            userStorage: options?.auth?.userStorage ?? defaultUserStorage(),
           }
         : null),
     },
