@@ -114,7 +114,10 @@ export function createStorageFromOptions(
   // A cookies object without accessors (e.g. only `encode`) is treated the
   // same as omitting cookies, so the runtime-specific defaults below apply.
   const cookies =
-    options.cookies && ("get" in options.cookies || "getAll" in options.cookies)
+    options.cookies &&
+    (("get" in options.cookies && typeof options.cookies.get === "function") ||
+      ("getAll" in options.cookies &&
+        typeof options.cookies.getAll === "function"))
       ? options.cookies
       : null;
   const cookieEncoding = options.cookieEncoding;
@@ -141,7 +144,7 @@ export function createStorageFromOptions(
   };
 
   if (cookies) {
-    if ("get" in cookies) {
+    if ("get" in cookies && typeof cookies.get === "function") {
       // Just get is not enough, because the client needs to see what cookies
       // are already set and unset them if necessary. To attempt to fix this
       // behavior for most use cases, we pass "hints" which is the keys of the
@@ -176,7 +179,12 @@ export function createStorageFromOptions(
 
       getAll = async (keyHints: string[]) => await getWithHints(keyHints);
 
-      if ("set" in cookies && "remove" in cookies) {
+      if (
+        "set" in cookies &&
+        typeof cookies.set === "function" &&
+        "remove" in cookies &&
+        typeof cookies.remove === "function"
+      ) {
         setAll = async (setCookies) => {
           for (let i = 0; i < setCookies.length; i += 1) {
             const { name, value, options } = setCookies[i];
@@ -199,11 +207,11 @@ export function createStorageFromOptions(
           "@supabase/ssr: createBrowserClient requires configuring a getAll and setAll cookie method (deprecated: alternatively both get, set and remove can be used)",
         );
       }
-    } else if ("getAll" in cookies) {
+    } else if ("getAll" in cookies && typeof cookies.getAll === "function") {
       getAll = async () => await cookies.getAll!();
 
-      if ("setAll" in cookies) {
-        setAll = cookies.setAll!;
+      if ("setAll" in cookies && typeof cookies.setAll === "function") {
+        setAll = (setCookies, headers) => cookies.setAll!(setCookies, headers);
       } else if (isServerClient) {
         setAll = async () => {
           console.warn(
@@ -417,7 +425,7 @@ export function createStorageFromOptions(
 
   setAll = async (setCookies, headers) => {
     const shouldSendHeaders =
-      !hasSentHeaders && Object.keys(headers).length > 0;
+      !hasSentHeaders && Boolean(headers && Object.keys(headers).length > 0);
 
     await originalSetAll(setCookies, shouldSendHeaders ? headers : {});
 

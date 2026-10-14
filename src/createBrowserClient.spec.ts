@@ -30,6 +30,20 @@ describe("createBrowserClient", () => {
         createBrowserClient("", "anon key");
       }).toThrow();
     });
+
+    it("should throw when getAll is provided but setAll is undefined", async () => {
+      expect(() => {
+        createBrowserClient("http://localhost", "anon-key", {
+          isSingleton: false,
+          cookies: {
+            getAll: async () => [],
+            setAll: undefined,
+          },
+        });
+      }).toThrow(
+        "@supabase/ssr: createBrowserClient requires configuring both getAll and setAll cookie methods",
+      );
+    });
   });
 
   describe("auth options passthrough", () => {
