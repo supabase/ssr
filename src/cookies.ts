@@ -317,6 +317,11 @@ export function createStorageFromOptions(
           // See removeItem below for the host-only also-clear rationale.
           // Same logic applies here: when overwriting an existing session,
           // stale chunks at a previous scope must be cleared at that scope.
+          // This includes the chunks being written now: a host-only cookie
+          // with the same name is a different cookie, and as the older one
+          // it is listed first in the Cookie header and shadows the new
+          // value. The host-only clears come before the sets, so cookie
+          // stores keyed by name only keep the set.
           const hostOnlyRemoveOptions = removeCookieOptions.domain
             ? (() => {
                 const { domain: _domain, ...rest } = removeCookieOptions;
@@ -326,7 +331,12 @@ export function createStorageFromOptions(
 
           const allToSet = [
             ...(hostOnlyRemoveOptions
-              ? [...removeCookies].map((name) => ({
+              ? [
+                  ...removeCookies,
+                  ...setCookies
+                    .map(({ name }) => name)
+                    .filter((name) => cookieNames.includes(name)),
+                ].map((name) => ({
                   name,
                   value: "",
                   options: hostOnlyRemoveOptions,
@@ -629,9 +639,17 @@ export async function applyServerStorage(
   delete (setCookieOptions as any).name;
 
   // See removeItem in createStorageFromOptions for the host-only also-clear
-  // rationale. Same logic on the server-side response path.
+  // rationale. Same logic on the server-side response path, including the
+  // existing chunks being overwritten (see setItem in
+  // createStorageFromOptions).
+  const hostOnlyRemoveNames = [
+    ...removeCookiesToWrite,
+    ...setCookiesToWrite
+      .map(({ name }) => name)
+      .filter((name) => currentByName.has(name)),
+  ];
   const hostOnlyRemoveOptions =
-    removeCookieOptions.domain && removeCookiesToWrite.length > 0
+    removeCookieOptions.domain && hostOnlyRemoveNames.length > 0
       ? (() => {
           const { domain: _domain, ...rest } = removeCookieOptions;
           return rest;
@@ -645,7 +663,7 @@ export async function applyServerStorage(
   await setAll(
     [
       ...(hostOnlyRemoveOptions
-        ? removeCookiesToWrite.map((name) => ({
+        ? hostOnlyRemoveNames.map((name) => ({
             name,
             value: "",
             options: hostOnlyRemoveOptions,

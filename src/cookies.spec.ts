@@ -1766,6 +1766,35 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       expect(store.get("remove-key")?.domain).toBe(".example.com");
       expect(store.get("remove-key.0")?.domain).toBe(".example.com");
     });
+
+    it("keeps the domain-scoped set after a same-name host-only clear", async () => {
+      const store = new Map<
+        string,
+        { value: string; options: CookieOptions }
+      >();
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [{ name: "storage-key", value: "old" }],
+            setAll: async (setCookies) => {
+              // model @edge-runtime/cookies: last write for a name wins
+              setCookies.forEach(({ name, value, options }) =>
+                store.set(name, { value, options }),
+              );
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.setItem("storage-key", "new");
+
+      expect(store.get("storage-key")?.value).toBe("new");
+      expect(store.get("storage-key")?.options.domain).toBe(".example.com");
+    });
   });
 
   describe("browser client setItem chunk-cleanup", () => {
@@ -1809,8 +1838,93 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
       // Order: host-only removes, then with-domain removes, then the set.
       expect(setAllCalls).toEqual([
         { name: "storage-key.4", value: "", options: hostOnlyRemove },
+        { name: "storage-key", value: "", options: hostOnlyRemove },
         { name: "storage-key.4", value: "", options: withDomainRemove },
         { name: "storage-key", value: "new-value", options: withDomainSet },
+      ]);
+    });
+
+    it("clears host-only copies of the chunks it overwrites when domain is configured", async () => {
+      // After a host-only -> `.example.com` migration the browser holds both
+      // copies under the same names. The older host-only one is listed first
+      // in the Cookie header and shadows the new value until it is cleared.
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [
+              { name: "storage-key.0", value: "old-chunk-0" },
+              { name: "storage-key.1", value: "old-chunk-1" },
+            ],
+            setAll: async (setCookies) => {
+              setAllCalls.push(...setCookies);
+            },
+          },
+        },
+        false,
+      );
+
+      const value = "a".repeat(MAX_CHUNK_SIZE + 10);
+      await storage.setItem("storage-key", value);
+
+      const hostOnlyRemove = { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 };
+      const withDomainSet = {
+        ...DEFAULT_COOKIE_OPTIONS,
+        domain: ".example.com",
+      };
+
+      expect(setAllCalls).toEqual([
+        { name: "storage-key.0", value: "", options: hostOnlyRemove },
+        { name: "storage-key.1", value: "", options: hostOnlyRemove },
+        {
+          name: "storage-key.0",
+          value: value.substring(0, MAX_CHUNK_SIZE),
+          options: withDomainSet,
+        },
+        {
+          name: "storage-key.1",
+          value: value.substring(MAX_CHUNK_SIZE),
+          options: withDomainSet,
+        },
+      ]);
+    });
+
+    it("does not emit host-only removes for new cookies when domain is configured", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage } = createStorageFromOptions(
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+          cookies: {
+            getAll: async () => [],
+            setAll: async (setCookies) => {
+              setAllCalls.push(...setCookies);
+            },
+          },
+        },
+        false,
+      );
+
+      await storage.setItem("storage-key", "new-value");
+
+      expect(setAllCalls).toEqual([
+        {
+          name: "storage-key",
+          value: "new-value",
+          options: { ...DEFAULT_COOKIE_OPTIONS, domain: ".example.com" },
+        },
       ]);
     });
   });
@@ -1862,6 +1976,51 @@ describe("host-only also-clear when cookieOptions.domain is set", () => {
         { name: "remove-key.0", value: "", options: hostOnly },
         { name: "remove-key", value: "", options: withDomain },
         { name: "remove-key.0", value: "", options: withDomain },
+      ]);
+    });
+
+    it("clears host-only copies of the chunks it overwrites when domain is configured", async () => {
+      const setAllCalls: {
+        name: string;
+        value: string;
+        options: CookieOptions;
+      }[] = [];
+
+      const { storage, getAll, setAll, setItems, removedItems } =
+        createStorageFromOptions(
+          {
+            cookieEncoding: "raw",
+            cookieOptions: { domain: ".example.com" },
+            cookies: {
+              getAll: async () => [{ name: "set-key", value: "old" }],
+              setAll: async (setCookies) => {
+                setAllCalls.push(...setCookies);
+              },
+            },
+          },
+          true,
+        );
+
+      await storage.setItem("set-key", "new");
+      await applyServerStorage(
+        { getAll, setAll, setItems, removedItems },
+        {
+          cookieEncoding: "raw",
+          cookieOptions: { domain: ".example.com" },
+        },
+      );
+
+      expect(setAllCalls).toEqual([
+        {
+          name: "set-key",
+          value: "",
+          options: { ...DEFAULT_COOKIE_OPTIONS, maxAge: 0 },
+        },
+        {
+          name: "set-key",
+          value: "new",
+          options: { ...DEFAULT_COOKIE_OPTIONS, domain: ".example.com" },
+        },
       ]);
     });
 
