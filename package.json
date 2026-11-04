@@ -37,7 +37,7 @@
   "homepage": "https://github.com/supabase/ssr#readme",
   "devDependencies": {
     "@eslint/js": "^9.3.0",
-    "@supabase/supabase-js": "2.114.0",
+    "@supabase/supabase-js": "2.119.0",
     "@types/node": "^24.3.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
@@ -47,7 +47,7 @@
     "vitest": "^5.0.0"
   },
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.114.0"
+    "@supabase/supabase-js": "^2.119.0"
   },
   "dependencies": {
     "cookie": "^1.0.2"
