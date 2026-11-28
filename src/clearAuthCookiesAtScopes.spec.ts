@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_COOKIE_OPTIONS } from "./utils";
 import { CookieOptions } from "./types";
@@ -6,6 +6,24 @@ import { CookieOptions } from "./types";
 import { clearAuthCookiesAtScopes } from "./clearAuthCookiesAtScopes";
 
 describe("clearAuthCookiesAtScopes", () => {
+  it("prevents caching responses that clear auth cookies", async () => {
+    const setAll = vi.fn();
+
+    await clearAuthCookiesAtScopes({
+      getAll: async () => [{ name: "storage-key", value: "value" }],
+      setAll,
+      storageKey: "storage-key",
+      scopes: [{ domain: ".example.com" }],
+    });
+
+    expect(setAll).toHaveBeenCalledExactlyOnceWith(expect.any(Array), {
+      "Cache-Control":
+        "private, no-cache, no-store, must-revalidate, max-age=0",
+      Expires: "0",
+      Pragma: "no-cache",
+    });
+  });
+
   it("is a no-op when no scopes are provided", async () => {
     const setAllCalls: unknown[] = [];
 
