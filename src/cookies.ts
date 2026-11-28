@@ -1,4 +1,5 @@
 import { parse, serialize } from "cookie";
+import { getAuthCookieCacheHeaders } from "./cacheHeaders";
 
 import {
   DEFAULT_COOKIE_OPTIONS,
@@ -662,11 +663,6 @@ export async function applyServerStorage(
         options: setCookieOptions,
       })),
     ],
-    {
-      "Cache-Control":
-        "private, no-cache, no-store, must-revalidate, max-age=0",
-      Expires: "0",
-      Pragma: "no-cache",
-    },
+    getAuthCookieCacheHeaders(),
   );
 }

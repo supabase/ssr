@@ -1,5 +1,6 @@
 import type { CookieOptions, GetAllCookies, SetAllCookies } from "./types";
 import { DEFAULT_COOKIE_OPTIONS, isChunkLike } from "./utils";
+import { getAuthCookieCacheHeaders } from "./cacheHeaders";
 
 /**
  * One-shot helper to clear Supabase auth cookies at one or more explicit
@@ -75,5 +76,5 @@ export async function clearAuthCookiesAtScopes(input: {
     }));
   });
 
-  await setAll(toSet, {});
+  await setAll(toSet, getAuthCookieCacheHeaders());
 }
